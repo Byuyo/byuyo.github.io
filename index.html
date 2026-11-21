@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1b1b1e">
+<title>Byuyo</title>
+<!-- Byuyo · etapa 1 (estructura que funcione). El diseño con el logo llega en la etapa 2. -->
+<style>
+  :root {
+    --fondo: #1b1b1e; --zona: #26262b; --zona2: #303036; --borde: #3a3a41;
+    --texto: #f2efed; --suave: #a9a5a2; --vino: #a8323e; --vino2: #c4515c;
+    --gasto: #e0675f; --ingreso: #5fbf7f; --prestamo: #5d9be0; --cero: #a57fd6; --alerta: #e0b25f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--fondo); color: var(--texto); }
+  body { font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); overflow-x: hidden; }
+  main { max-width: 520px; margin: 0 auto; }
+  .logo { font-size: 22px; font-weight: 800; margin: 0 0 12px; text-align: center; } .logo b { color: var(--vino2); }
+  h2 { font-size: 15px; margin: 22px 0 8px; color: var(--suave); text-transform: uppercase; letter-spacing: .04em; }
+  .zona { background: var(--zona); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  .oculto { display: none !important; }
+  button { font: inherit; color: var(--texto); background: var(--zona2); border: 0; border-radius: 10px; padding: 12px 14px; min-height: 44px; cursor: pointer; }
+  button.prim { background: var(--vino); font-weight: 600; }
+  button.sel { outline: 2px solid var(--vino2); background: #3a2328; }
+  button:disabled { opacity: .5; }
+  input, textarea, select { font: inherit; font-size: 16px; color: var(--texto); background: var(--zona2); border: 1px solid var(--borde); border-radius: 10px; padding: 10px 12px; width: 100%; min-height: 44px; }
+  textarea { resize: vertical; min-height: 70px; }
+  label { display: block; font-size: 13px; color: var(--suave); margin: 10px 0 4px; }
+  .fila { display: flex; gap: 8px; } .fila > * { flex: 1; min-width: 0; }
+  .suave { color: var(--suave); font-size: 14px; }
+  .error { color: var(--gasto); font-size: 14px; min-height: 20px; margin-top: 8px; }
+  .gasto { color: var(--gasto); } .ingreso { color: var(--ingreso); } .prestamo { color: var(--prestamo); } .cero { color: var(--cero); }
+  .pin { font-size: 28px; letter-spacing: .5em; text-align: center; }
+
+  /* Arriba: total centrado */
+  .saldo { text-align: center; padding: 20px 14px 16px; position: relative; }
+  .saldo .rotulo { font-size: 17px; color: var(--suave); }
+  .saldo .grande { font-size: 34px; font-weight: 700; letter-spacing: -.01em; margin: 2px 0 14px; overflow-wrap: anywhere; }
+  .saldo .medios { display: flex; justify-content: center; gap: 28px; }
+  .saldo .medios div div:first-child { font-size: 13px; color: var(--suave); }
+  .saldo .medios div div:last-child { font-weight: 600; }
+  .ojo { position: absolute; top: 10px; right: 10px; min-height: 36px; padding: 6px 10px; font-size: 13px; background: transparent; color: var(--suave); }
+
+  /* Lo que sobra */
+  .sobra .linea { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; }
+  .sobra .linea + .linea { border-top: 1px solid var(--borde); }
+  .sobra .linea span:last-child { font-weight: 700; white-space: nowrap; }
+
+  /* Nuevo reporte con micrófono */
+  .escribir { display: flex; gap: 8px; align-items: stretch; }
+  .escribir textarea { min-height: 52px; height: 52px; flex: 1; }
+  .mic { flex: 0 0 52px; font-size: 22px; padding: 0; }
+  .mic.escuchando { background: var(--vino); }
+
+  .aviso { border-left: 4px solid var(--alerta); background: #2e2a22; padding: 10px 12px; border-radius: 8px; margin-top: 10px; font-size: 14px; }
+  .aviso.mal { border-color: var(--gasto); background: #33201f; }
+  .aviso.bien { border-color: var(--ingreso); background: #1f2c23; }
+  .aviso ul { margin: 6px 0 0; padding-left: 18px; }
+
+  /* Periodo */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .chips button { min-height: 36px; padding: 6px 12px; font-size: 14px; border-radius: 18px; }
+  .rango { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 8px; }
+  .rango > div { flex: 1; min-width: 0; }
+  .rango button { flex: 0 0 auto; }
+
+  .rep { background: var(--zona); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+  .rep .arriba { display: flex; justify-content: space-between; gap: 10px; }
+  .rep .con { font-weight: 600; overflow-wrap: anywhere; }
+  .rep .val { font-weight: 700; white-space: nowrap; }
+  .rep .det { margin-top: 8px; font-size: 14px; color: var(--suave); border-top: 1px solid var(--borde); padding-top: 8px; }
+  .rep .det div { overflow-wrap: anywhere; }
+  .etq { display: inline-block; font-size: 12px; padding: 1px 6px; border-radius: 6px; background: var(--zona2); margin-left: 4px; }
+  .sepmes { background: var(--vino); border-radius: 8px; padding: 6px 12px; font-weight: 600; margin: 14px 0 8px; text-transform: capitalize; }
+  .chk { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 14px; }
+  .chk input { width: 22px; min-height: 22px; flex: 0 0 22px; margin-top: 1px; }
+
+  /* Barra de abajo */
+  .barra { position: fixed; left: 0; right: 0; bottom: 0; background: #141416; display: flex; justify-content: space-around; align-items: center;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); z-index: 8; }
+  .barra button { background: transparent; font-size: 12px; color: var(--suave); padding: 6px 4px; min-height: 48px; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .barra button .ic { font-size: 18px; line-height: 1; }
+  .barra button.activa { color: var(--texto); }
+  .barra .peso { flex: 0 0 56px; height: 56px; border-radius: 50%; background: var(--vino); color: var(--texto); font-size: 24px; font-weight: 700; margin-top: -22px; justify-content: center; }
+
+  #toast { position: fixed; left: 16px; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto;
+    background: var(--zona2); border-left: 4px solid var(--ingreso); padding: 12px 14px; border-radius: 10px; box-shadow: 0 6px 24px #0008; z-index: 9; }
+  .cargando { opacity: .6; pointer-events: none; }
+</style>
+</head>
+<body>
+<main>
+  <div class="logo"><b>By</b>uyo</div>
+
+  <!-- Bloqueo con PIN -->
+  <section id="bloqueo" class="zona">
+    <p id="bloqueoTitulo">Escribe tu PIN de 4 dígitos</p>
+    <input id="pin" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="PIN de 4 dígitos">
+    <div id="pin2caja" class="oculto">
+      <label for="pin2">Repite el PIN</label>
+      <input id="pin2" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">
+    </div>
+    <button id="pinBoton" class="prim" style="width:100%;margin-top:12px">Entrar</button>
+    <div id="pinError" class="error" role="alert"></div>
+  </section>
+
+  <!-- Pantalla principal -->
+  <section id="principal" class="oculto">
+    <div class="zona saldo">
+      <button id="ojo" class="ojo" aria-label="Ocultar valores">Ocultar</button>
+      <div class="rotulo">Total</div>
+      <div id="total" class="grande">—</div>
+      <div class="medios">
+        <div><div>Nequi</div><div id="nequi">—</div></div>
+        <div><div>Efectivo</div><div id="efectivo">—</div></div>
+      </div>
+    </div>
+
+    <div class="zona sobra" id="sobra"></div>
+
+    <h2 id="tituloReporte">Nuevo reporte</h2>
+    <div class="zona">
+      <div class="escribir">
+        <textarea id="frase" maxlength="300" autocomplete="off" aria-label="Nuevo reporte"></textarea>
+        <button id="mic" class="mic" type="button" aria-label="Dictar con el micrófono">🎤</button>
+      </div>
+      <button id="revisar" class="prim" style="width:100%;margin-top:10px">Revisar</button>
+      <div id="fraseError" class="error" role="alert"></div>
+    </div>
+
+    <div id="revision" class="zona oculto">
+      <div id="coinc"></div>
+      <label for="rConcepto">Concepto</label>
+      <input id="rConcepto" maxlength="80" autocomplete="off">
+      <div class="fila">
+        <div><label for="rValor">Valor ($)</label><input id="rValor" inputmode="numeric" autocomplete="off"></div>
+        <div><label for="rFecha">Fecha</label><input id="rFecha" type="date"></div>
+      </div>
+      <div class="fila">
+        <div><label for="rTipo">Tipo</label><select id="rTipo"></select></div>
+        <div><label for="rSub">Subcategoría</label><input id="rSub" maxlength="40" autocomplete="off"></div>
+      </div>
+      <label>Pagado con (obligatorio)</label>
+      <div class="fila">
+        <button id="mNequi" type="button">Nequi</button>
+        <button id="mEfectivo" type="button">Efectivo</button>
+      </div>
+      <label for="rNota">Nota <span id="notaReq"></span></label>
+      <textarea id="rNota" maxlength="300"></textarea>
+      <label class="chk"><input id="rInnecesario" type="checkbox"> Marcar como innecesario</label>
+      <label id="aprenderCaja" class="chk oculto"><input id="rAprender" type="checkbox" checked> <span id="aprenderTexto"></span></label>
+      <div id="avisoGasto"></div>
+      <div class="fila" style="margin-top:14px">
+        <button id="cancelar" type="button">Cancelar</button>
+        <button id="registrar" class="prim" type="button">Registrar</button>
+      </div>
+      <div id="regError" class="error" role="alert"></div>
+    </div>
+
+    <h2>Reportes</h2>
+    <div class="chips" id="chips">
+      <button data-p="3">3 días</button>
+      <button data-p="7">7 días</button>
+      <button data-p="15">15 días</button>
+      <button data-p="mes">Este mes</button>
+      <button data-p="3m">3 meses</button>
+      <button data-p="6m">6 meses</button>
+      <button data-p="fechas">Fechas…</button>
+    </div>
+    <div class="rango oculto" id="rango">
+      <div><label for="desde">Desde</label><input id="desde" type="date"></div>
+      <div><label for="hasta">Hasta</label><input id="hasta" type="date"></div>
+      <button id="verRango" class="prim">Ver</button>
+    </div>
+    <select id="mes" aria-label="Elegir un mes"></select>
+    <div id="lista" style="margin-top:10px"></div>
+  </section>
+</main>
+
+<nav class="barra oculto" id="barra">
+  <button class="activa" data-tab="inicio"><span class="ic">⌂</span>Inicio</button>
+  <button data-tab="graficas"><span class="ic">◔</span>Gráficas</button>
+  <button class="peso" data-tab="reporte" aria-label="Nuevo reporte">$</button>
+  <button data-tab="extractos"><span class="ic">▤</span>Extractos</button>
+  <button data-tab="mas"><span class="ic">⋯</span>Más</button>
+</nav>
+<div id="toast" class="oculto" role="status"></div>
+
+<script>
+'use strict';
+// URL del puente (Apps Script publicado como aplicación web). Se pega aquí al publicar.
+const PUENTE = 'https://script.google.com/macros/s/AKfycbwvxpKWrOK0PSpzibRVujukZhnQKS6ljrJw82RrNfGcgwXTi2tOLIphEmZhR9Glyv39ew/exec';
+const ZONA = 'America/Bogota';
+const SEG_BLOQUEO = 60; // si la app queda en segundo plano más de 60 s, pide el PIN otra vez
+
+const $ = id => document.getElementById(id);
+const estado = { pin: '', creando: false, periodo: null, datos: null, revision: null, medio: '', oculto: false, ocultoDesde: 0 };
+const MODO_DEMO = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has('demo');
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+/* ---------------------------- utilidades ---------------------------- */
+function hoyTxt() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: ZONA, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
+/** Suma días (o meses) a una fecha "yyyy-MM-dd" sin que se corra por la zona horaria. */
+function mover(s, dias, meses) {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1 + (meses || 0), d + (dias || 0))).toISOString().slice(0, 10);
+}
+function pesos(n) {
+  if (n == null || isNaN(n)) return '—';
+  if (estado.oculto) return '$ •••••';
+  return (n < 0 ? '−$ ' : '$ ') + Math.abs(Math.round(n)).toLocaleString('es-CO');
+}
+function fechaBonita(s) {
+  if (!s) return '';
+  const [y, m, d] = s.split('-').map(Number);
+  return d + '-' + MESES[m - 1].slice(0, 3) + '-' + y;
+}
+function nombreMes(ym) { const [y, m] = ym.split('-').map(Number); return MESES[m - 1] + ' ' + y; }
+function clase(rep) {
+  if (!rep.monto) return 'cero';
+  if (rep.tipo === 'Préstamo recibido') return 'prestamo';
+  return rep.monto < 0 ? 'gasto' : 'ingreso';
+}
+/** Crea un elemento. El texto siempre va como textContent (nunca se ejecuta como código). */
+function el(tag, props, ...hijos) {
+  const e = document.createElement(tag);
+  Object.entries(props || {}).forEach(([k, v]) => { if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else e.setAttribute(k, v); });
+  hijos.flat().forEach(h => { if (h != null) e.append(h instanceof Node ? h : document.createTextNode(String(h))); });
+  return e;
+}
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.remove('oculto');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.add('oculto'), 4000);
+}
+function uuid() { return (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()); }
+
+/* ---------------------------- puente ---------------------------- */
+async function api(accion, datos) {
+  const req = Object.assign({ accion, pin: estado.pin }, datos || {});
+  let j;
+  if (MODO_DEMO) {
+    j = await window.BYUYO_DEMO.atender(JSON.parse(JSON.stringify(req)));
+  } else {
+    if (!/^https:\/\/script\.google\.com\//.test(PUENTE)) throw new Error('Falta pegar la URL del puente en la app.');
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 30000);
+    let r;
+    try {
+      // text/plain: así el navegador no hace la consulta previa (CORS) que Apps Script no responde.
+      r = await fetch(PUENTE, { method: 'POST', body: JSON.stringify(req), signal: ctrl.signal, headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+    } catch (e) {
+      throw new Error(e.name === 'AbortError' ? 'La hoja tardó demasiado. Intenta otra vez.' : 'Sin conexión. Revisa el internet.');
+    } finally { clearTimeout(t); }
+    try { j = await r.json(); } catch (e) { throw new Error('Respuesta rara del puente. Intenta otra vez.'); }
+  }
+  if (!j.ok) {
+    if (j.codigo === 'PIN_MAL' || j.codigo === 'BLOQUEADO' || j.codigo === 'SIN_PIN') { bloquear(j.error, j.codigo); }
+    const err = new Error(j.error || 'Error'); err.codigo = j.codigo; throw err;
+  }
+  return j;
+}
+
+/* ---------------------------- PIN ---------------------------- */
+async function arrancar() {
+  $('pinError').textContent = 'Conectando…';
+  try {
+    const r = await api('estado');
+    modoPin(!r.tienePin);
+    $('pinError').textContent = '';
+    $('pin').focus();
+  } catch (e) { $('pinError').textContent = e.message; }
+}
+/** Pone la pantalla de bloqueo en "crear PIN" o "escribir PIN" (letreros y comportamiento juntos). */
+function modoPin(creando) {
+  estado.creando = creando;
+  $('bloqueoTitulo').textContent = creando ? 'Crea tu PIN de 4 dígitos' : 'Escribe tu PIN de 4 dígitos';
+  $('pin2caja').classList.toggle('oculto', !creando);
+  $('pinBoton').textContent = creando ? 'Crear PIN' : 'Entrar';
+  $('pin').value = ''; $('pin2').value = '';
+}
+async function entrar() {
+  const pin = $('pin').value.trim();
+  $('pinError').textContent = '';
+  if (!/^\d{4}$/.test(pin)) { $('pinError').textContent = 'El PIN tiene 4 dígitos.'; return; }
+  $('pinBoton').disabled = true;
+  try {
+    if (estado.creando) {
+      if (pin !== $('pin2').value.trim()) { $('pinError').textContent = 'Los dos PIN no son iguales.'; return; }
+      await api('crearPin', { pinNuevo: pin });
+      modoPin(false);
+    }
+    estado.pin = pin;
+    await cargar();
+    $('pin').value = ''; $('pin2').value = '';
+    $('bloqueo').classList.add('oculto');
+    $('principal').classList.remove('oculto');
+    $('barra').classList.remove('oculto');
+    const t = new URLSearchParams(location.search).get('t'); // texto que manda Siri
+    if (t) { $('frase').value = t.slice(0, 300); history.replaceState(null, '', location.pathname + (MODO_DEMO ? '?demo' : '')); revisar(); }
+  } catch (e) {
+    estado.pin = '';
+    if (e.codigo === 'YA_HAY_PIN') modoPin(false);
+    $('pinError').textContent = e.message; $('pin').value = ''; $('pin').focus();
+  } finally { $('pinBoton').disabled = false; }
+}
+function bloquear(msg, codigo) {
+  estado.pin = '';
+  $('principal').classList.add('oculto');
+  $('barra').classList.add('oculto');
+  $('bloqueo').classList.remove('oculto');
+  // Si ya hay PIN, se pide escribirlo; solo se pide crear uno si el puente dice que no existe.
+  modoPin(codigo === 'SIN_PIN');
+  $('pinError').textContent = msg || '';
+}
+
+/* ---------------------------- periodo ---------------------------- */
+/** Botones rápidos: 3, 7 y 15 días, este mes, 3 y 6 meses. */
+function periodoRapido(p) {
+  const hoy = hoyTxt();
+  if (p === 'mes') return { desde: hoy.slice(0, 8) + '01', hasta: hoy, boton: 'mes' };
+  if (p === '3m') return { desde: mover(hoy, 1, -3), hasta: hoy, boton: '3m' };
+  if (p === '6m') return { desde: mover(hoy, 1, -6), hasta: hoy, boton: '6m' };
+  const n = Number(p);
+  return { desde: mover(hoy, -(n - 1)), hasta: hoy, boton: p };
+}
+function marcarChip() {
+  document.querySelectorAll('#chips button').forEach(b => b.classList.toggle('sel', !!estado.periodo && b.dataset.p === estado.periodo.boton));
+}
+function pintarMeses(meses) {
+  const s = $('mes'); s.textContent = '';
+  s.append(el('option', { value: '', text: 'Elegir un mes…' }));
+  meses.forEach(m => s.append(el('option', { value: m, text: nombreMes(m) })));
+  s.value = estado.periodo && estado.periodo.boton === 'unmes' ? estado.periodo.desde.slice(0, 7) : '';
+}
+
+/* ---------------------------- inicio ---------------------------- */
+async function cargar() {
+  if (!estado.periodo) estado.periodo = periodoRapido('mes');
+  $('lista').classList.add('cargando');
+  try {
+    const r = await api('inicio', { desde: estado.periodo.desde, hasta: estado.periodo.hasta });
+    estado.datos = r;
+    pintarResumen(r.resumen, r.hoy);
+    pintarMeses(r.meses || []);
+    marcarChip();
+    pintarLista(r.lista);
+  } finally { $('lista').classList.remove('cargando'); }
+}
+function pintarResumen(s, hoy) {
+  $('total').textContent = s.total != null ? pesos(s.total) : pesos(s.saldoReal);
+  $('nequi').textContent = pesos(s.nequi);
+  $('efectivo').textContent = pesos(s.efectivo);
+  // Lo que sobra: fin de este mes y el punto más justo, ambos ya con los gastos fijos estimados.
+  const mes = (hoy || hoyTxt()).slice(0, 7);
+  const finMes = s.cierres ? s.cierres[mes] : null;
+  const b = $('sobra'); b.textContent = '';
+  const linea = (rotulo, valor) => el('div', { class: 'linea' }, el('span', { text: rotulo }), el('span', { class: valor < 0 ? 'gasto' : 'ingreso', text: (valor < 0 ? 'Falta ' : 'Sobra ') + pesos(Math.abs(valor)) }));
+  // Un solo dato: lo que queda a fin de mes, ya descontados los gastos fijos estimados.
+  b.classList.toggle('oculto', finMes == null);
+  if (finMes != null) b.append(linea('Fin de ' + MESES[Number(mes.slice(5)) - 1] + ', con gastos fijos', finMes));
+}
+function pintarLista(lista) {
+  const L = $('lista'); L.textContent = '';
+  if (!lista.length) { L.append(el('p', { class: 'suave', text: 'No hay reportes en estas fechas.' })); return; }
+  let mesActual = '';
+  lista.forEach(rep => {
+    const m = rep.fecha.slice(0, 7);
+    if (m !== mesActual) { mesActual = m; L.append(el('div', { class: 'sepmes', text: nombreMes(m) })); }
+    const det = el('div', { class: 'det oculto' },
+      el('div', { text: 'Fecha: ' + fechaBonita(rep.fecha) + (rep.creado ? ' · registrado ' + rep.creado : '') }),
+      el('div', { text: 'Categoría: ' + (rep.tipo || 'sin tipo') + (rep.sub ? ' › ' + rep.sub : '') }),
+      rep.cuota ? el('div', { text: 'Cuota: ' + rep.cuota }) : null,
+      el('div', { text: 'Medio: ' + (rep.medio || 'no registrado') }),
+      el('div', { text: 'Estado: ' + rep.estado }),
+      rep.nota ? el('div', { text: 'Nota: ' + rep.nota }) : null,
+      rep.grupo ? el('div', { text: 'Grupo: ' + rep.grupo }) : null,
+      rep.innecesario === 'Sí' ? el('div', { text: 'Marcado como innecesario' }) : null,
+      el('div', { text: 'Comprobante (Ref banco): ' + (rep.ref || '—') }),
+      el('div', { text: 'ID de la hoja: ' + rep.id }));
+    const caja = el('div', { class: 'rep', role: 'button', tabindex: '0' },
+      el('div', { class: 'arriba' },
+        el('div', { class: 'con' }, rep.concepto || '(sin concepto)', rep.estado !== 'Confirmado' ? el('span', { class: 'etq', text: rep.estado }) : null),
+        el('div', { class: 'val ' + clase(rep), text: pesos(rep.monto) })),
+      el('div', { class: 'suave', text: fechaBonita(rep.fecha) + ' · ' + (rep.medio || 'medio sin registrar') + ' · Ver detalles' }),
+      det);
+    caja.addEventListener('click', () => det.classList.toggle('oculto'));
+    L.append(caja);
+  });
+}
+
+/* ---------------------------- micrófono ---------------------------- */
+// Usa el dictado del navegador si existe; si no, recuerda usar el micrófono del teclado del iPhone.
+let escuchando = null;
+function dictar() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { $('frase').focus(); toast('Toca el micrófono del teclado del iPhone para dictar.'); return; }
+  if (escuchando) { escuchando.stop(); return; }
+  const r = new SR();
+  r.lang = 'es-CO'; r.interimResults = false; r.maxAlternatives = 1;
+  r.onresult = e => { const t = e.results[0][0].transcript; $('frase').value = ($('frase').value + ' ' + t).trim(); };
+  r.onerror = () => toast('No te escuché. Intenta otra vez o usa el micrófono del teclado.');
+  r.onend = () => { escuchando = null; $('mic').classList.remove('escuchando'); };
+  escuchando = r; $('mic').classList.add('escuchando');
+  try { r.start(); } catch (e) { r.onend(); }
+}
+
+/* ---------------------------- registrar ---------------------------- */
+const TIPOS = ['Gasto variable', 'Gasto fijo', 'Deuda', 'Suscripciones', 'Pauta', 'Ingreso fijo', 'Ingreso extra', 'Préstamo recibido', 'Reembolso recibido'];
+const POSITIVOS = ['Ingreso fijo', 'Ingreso extra', 'Préstamo recibido', 'Reembolso recibido'];
+
+async function revisar() {
+  const texto = $('frase').value.trim();
+  $('fraseError').textContent = '';
+  if (!texto) { $('fraseError').textContent = 'Escribe o dicta el reporte.'; return; }
+  $('revisar').disabled = true;
+  try {
+    const r = await api('interpretar', { texto });
+    abrirRevision(r);
+  } catch (e) { $('fraseError').textContent = e.message; }
+  finally { $('revisar').disabled = false; }
+}
+function abrirRevision(r) {
+  const p = r.interpretacion, c = r.coincidencia;
+  estado.revision = { p, c, idPedido: uuid() };
+  $('rConcepto').value = c ? c.concepto : p.concepto;
+  $('rValor').value = p.monto ? Math.abs(p.monto).toLocaleString('es-CO') : '';
+  $('rFecha').value = p.fecha; $('rFecha').max = hoyTxt();
+  const sel = $('rTipo'); sel.textContent = '';
+  sel.append(el('option', { value: '', text: 'Sin tipo (queda "Por revisar")' }));
+  TIPOS.forEach(t => sel.append(el('option', { value: t, text: t })));
+  sel.value = p.tipo || '';
+  $('rSub').value = p.sub || '';
+  ponerMedio(p.medio || '');
+  $('rNota').value = '';
+  $('rInnecesario').checked = false;
+  const cc = $('coinc'); cc.textContent = '';
+  if (c) {
+    const chk = el('input', { type: 'checkbox', id: 'rConfirmar' }); chk.checked = true;
+    chk.addEventListener('change', () => { $('rConcepto').value = chk.checked ? c.concepto : p.concepto; recalcular(); });
+    cc.append(el('div', { class: 'aviso' },
+      el('div', {}, 'Esto parece un pago que ya estaba en la hoja: ', el('b', { text: c.concepto }), ' ' + pesos(c.monto) + ' del ' + fechaBonita(c.fecha) + ' (' + c.estado + (c.cuota ? ', cuota ' + c.cuota : '') + ', ' + c.id + ').'),
+      el('label', { class: 'chk' }, chk, 'Confirmar ese pago (no crea uno nuevo)')));
+  }
+  estado.revision.aprender = !p.tipo && p.palabra ? p.palabra : '';
+  $('aprenderCaja').classList.add('oculto');
+  const av = p.avisos.filter(x => !(p.montoDeLaHoja && /valor/.test(x)));
+  $('regError').textContent = av.join(' ');
+  actualizarNota();
+  pintarAviso(r.aviso);
+  $('revision').classList.remove('oculto');
+  $('revision').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function ponerMedio(m) {
+  estado.medio = m;
+  $('mNequi').classList.toggle('sel', m === 'Nequi');
+  $('mEfectivo').classList.toggle('sel', m === 'Efectivo');
+}
+function actualizarNota() {
+  const tipo = $('rTipo').value;
+  const positivo = POSITIVOS.includes(tipo);
+  $('notaReq').textContent = positivo ? '(obligatoria: de dónde viene la plata)' : '(opcional)';
+  if (positivo && !$('rNota').value.trim()) {
+    $('rNota').value = tipo === 'Préstamo recibido' ? 'PRÉSTAMO de …: se devuelve con …' : tipo === 'Reembolso recibido' ? 'Reembolso: …' : 'Ingreso: ';
+  }
+  const pal = estado.revision && estado.revision.aprender;
+  $('aprenderCaja').classList.toggle('oculto', !(pal && tipo));
+  if (pal && tipo) $('aprenderTexto').textContent = 'Recordar que "' + pal + '" es ' + tipo + ($('rSub').value.trim() ? ' › ' + $('rSub').value.trim() : '');
+}
+function valorFirmado() {
+  const n = parseInt($('rValor').value.replace(/\D/g, ''), 10);
+  if (!n) return 0;
+  const tipo = $('rTipo').value;
+  if (tipo) return POSITIVOS.includes(tipo) ? n : -n;
+  return estado.revision.p.monto > 0 ? n : -n;
+}
+function pintarAviso(a) {
+  const box = $('avisoGasto'); box.textContent = '';
+  if (!a) return;
+  const mal = a.primerNegativo || (a.cierreMesDespues != null && a.cierreMesDespues < 0);
+  const d = el('div', { class: 'aviso ' + (mal ? 'mal' : 'bien') });
+  if (a.cierreMes != null) {
+    d.append(el('div', { text: a.cierreMesDespues >= 0
+      ? 'Fin de ' + MESES[Number(a.mes.slice(5)) - 1] + ': sobra ' + pesos(a.cierreMes) + ' → con esto ' + pesos(a.cierreMesDespues) + '.'
+      : 'Fin de ' + MESES[Number(a.mes.slice(5)) - 1] + ': faltarían ' + pesos(-a.cierreMesDespues) + ' para tus pagos del mes.' }));
+  }
+  if (a.primerNegativo) {
+    d.append(el('div', { text: 'El ' + fechaBonita(a.primerNegativo.fecha) + ' faltarían ' + pesos(-a.primerNegativo.saldo) + '.' }));
+    if (a.pendientes.length) {
+      d.append(el('div', { text: 'Porque aún debes pagar:' }),
+        el('ul', {}, a.pendientes.map(x => el('li', { text: x.concepto + ' ' + pesos(x.monto) + ' (' + fechaBonita(x.fecha) + (x.estado !== 'Pendiente' ? ', ' + x.estado : '') + ')' }))));
+    }
+  } else {
+    d.append(el('div', { text: 'Lo más justo (' + fechaBonita(a.despuesFecha) + '): sobra ' + pesos(a.antes) + ' → con esto ' + pesos(a.despues) + '.' }));
+  }
+  box.append(d);
+}
+let recalcT = 0;
+function recalcular() {
+  clearTimeout(recalcT);
+  recalcT = setTimeout(async () => {
+    const monto = valorFirmado(), fecha = $('rFecha').value;
+    if (!monto || !fecha) { pintarAviso(null); return; }
+    const conf = $('rConfirmar') && $('rConfirmar').checked ? estado.revision.c.id : '';
+    try { const r = await api('aviso', { monto, fecha, confirmarId: conf }); pintarAviso(r.aviso); } catch (e) { /* el aviso es opcional */ }
+  }, 500);
+}
+async function registrar() {
+  const rev = estado.revision; if (!rev) return;
+  $('regError').textContent = '';
+  const monto = valorFirmado();
+  const tipo = $('rTipo').value;
+  const mov = {
+    concepto: $('rConcepto').value.trim(), monto, fecha: $('rFecha').value, tipo,
+    sub: $('rSub').value.trim(), medio: estado.medio, nota: $('rNota').value.trim(),
+    innecesario: $('rInnecesario').checked,
+    confirmarId: $('rConfirmar') && $('rConfirmar').checked ? rev.c.id : '',
+  };
+  const errores = [];
+  if (!mov.concepto) errores.push('Falta el concepto.');
+  if (!monto) errores.push('Falta el valor.');
+  if (!mov.fecha) errores.push('Falta la fecha.');
+  else if (mov.fecha > hoyTxt()) errores.push('La fecha es del futuro.');
+  if (!mov.medio) errores.push('Elige Nequi o Efectivo.');
+  if (monto > 0 && (!mov.nota || /…/.test(mov.nota) || mov.nota === 'Ingreso:')) errores.push('Completa la nota: de dónde viene la plata.');
+  if (errores.length) { $('regError').textContent = errores.join(' '); return; }
+  if (rev.aprender && tipo && $('rAprender').checked) mov.aprender = { palabra: rev.aprender, tipo, sub: mov.sub };
+  $('registrar').disabled = true;
+  try {
+    const r = await api('registrar', { mov, idPedido: rev.idPedido });
+    cerrarRevision();
+    $('frase').value = '';
+    toast((r.accion === 'confirmado' ? 'Confirmado ' : 'Guardado ') + r.id + ': ' + mov.concepto + ' ' + pesos(monto));
+    if (mov.fecha < estado.periodo.desde || mov.fecha > estado.periodo.hasta) estado.periodo = periodoRapido('mes');
+    await cargar();
+  } catch (e) { $('regError').textContent = e.message; }
+  finally { $('registrar').disabled = false; }
+}
+function cerrarRevision() { estado.revision = null; $('revision').classList.add('oculto'); $('regError').textContent = ''; }
+
+/* ---------------------------- eventos ---------------------------- */
+$('pinBoton').addEventListener('click', entrar);
+$('pin').addEventListener('input', () => { if (!estado.creando && /^\d{4}$/.test($('pin').value)) entrar(); });
+$('pin2').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+$('pin').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+$('revisar').addEventListener('click', revisar);
+$('mic').addEventListener('click', dictar);
+$('cancelar').addEventListener('click', () => { cerrarRevision(); toast('Cancelado: no se guardó nada.'); });
+$('registrar').addEventListener('click', registrar);
+$('mNequi').addEventListener('click', () => ponerMedio('Nequi'));
+$('mEfectivo').addEventListener('click', () => ponerMedio('Efectivo'));
+$('rTipo').addEventListener('change', () => { actualizarNota(); recalcular(); });
+$('rSub').addEventListener('input', actualizarNota);
+$('rValor').addEventListener('input', () => {
+  const n = parseInt($('rValor').value.replace(/\D/g, ''), 10);
+  $('rValor').value = n ? n.toLocaleString('es-CO') : '';
+  recalcular();
+});
+$('rFecha').addEventListener('change', recalcular);
+$('ojo').addEventListener('click', () => {
+  estado.oculto = !estado.oculto;
+  $('ojo').textContent = estado.oculto ? 'Mostrar' : 'Ocultar';
+  if (estado.datos) { pintarResumen(estado.datos.resumen, estado.datos.hoy); pintarLista(estado.datos.lista); }
+});
+$('chips').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.p === 'fechas') {
+    const abierto = !$('rango').classList.contains('oculto');
+    $('rango').classList.toggle('oculto', abierto);
+    if (!abierto) { $('desde').value = estado.periodo.desde; $('hasta').value = estado.periodo.hasta; $('desde').max = $('hasta').max = hoyTxt(); }
+    return;
+  }
+  $('rango').classList.add('oculto');
+  estado.periodo = periodoRapido(b.dataset.p);
+  cargar().catch(err => toast(err.message));
+});
+$('verRango').addEventListener('click', () => {
+  let d = $('desde').value, h = $('hasta').value;
+  if (!d || !h) { toast('Elige las dos fechas.'); return; }
+  if (h < d) { const x = d; d = h; h = x; }
+  if (d < mover(h, 1, -6)) { toast('Máximo 6 meses a la vez.'); return; }
+  estado.periodo = { desde: d, hasta: h, boton: 'fechas' };
+  cargar().catch(err => toast(err.message));
+});
+$('mes').addEventListener('change', () => {
+  const m = $('mes').value; if (!m) return;
+  $('rango').classList.add('oculto');
+  estado.periodo = { desde: m + '-01', hasta: mover(m + '-01', -1, 1), boton: 'unmes' };
+  cargar().catch(err => toast(err.message));
+});
+$('barra').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const t = b.dataset.tab;
+  if (t === 'inicio') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (t === 'reporte') { $('tituloReporte').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('frase').focus(), 400); return; }
+  toast({ graficas: 'Gráficas', extractos: 'Extractos', mas: 'Más opciones' }[t] + ': llega en la etapa 3.');
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { estado.ocultoDesde = Date.now(); return; }
+  if (estado.pin && Date.now() - estado.ocultoDesde > SEG_BLOQUEO * 1000) bloquear('');
+});
+
+if (MODO_DEMO) {
+  // Solo en el computador (localhost) para probar sin tocar la hoja real.
+  const cargarJs = src => new Promise((ok, mal) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = mal; document.head.append(s); });
+  cargarJs('../apps-script/Parser.gs').then(() => cargarJs('../pruebas/hoja-falsa.js')).then(() => cargarJs('../apps-script/Puente.gs')).then(arrancar)
+    .catch(() => { $('pinError').textContent = 'No cargó el modo de prueba.'; });
+} else {
+  arrancar();
+}
+</script>
+</body>
+</html>
