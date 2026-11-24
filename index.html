@@ -234,10 +234,11 @@
   .campo input, .campo select { height: 46px; border: 1px solid var(--borde); border-radius: 10px; background: var(--zona2); padding: 0 10px; min-width: 0; width: 100%; color-scheme: dark; }
 
   /* Barra de abajo (retráctil) */
-  #barra { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: calc(84px + var(--safeB)); background: #121214; display: flex; align-items: flex-start;
-    justify-content: space-around; padding: 8px 8px 0; transition: transform .28s ease; }
+  /* 3 botones: Gráficas · $ · Extractos; el $ queda justo en el centro (columnas iguales a los lados). */
+  #barra { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: calc(84px + var(--safeB)); background: #121214; display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); justify-items: center; align-items: start; padding: 8px max(8px, calc((100% - 520px) / 2)) 0; transition: transform .28s ease; }
   #barra.escondida { transform: translateY(110%); }
-  #barra button { background: transparent; border: 0; color: var(--apagado); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; min-height: 48px; }
+  #barra button { background: transparent; border: 0; color: var(--apagado); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 88px; min-height: 48px; }
   #barra button.activa { color: var(--texto); font-weight: 700; }
   #barra .peso { width: 60px; height: 60px; margin-top: -22px; border: 4px solid var(--fondo); border-radius: 50%; background: var(--vino); color: var(--texto); font-size: 26px; font-weight: 800; justify-content: center; }
 
@@ -247,6 +248,29 @@
   .pantalla h1 { margin: 0; font-size: 20px; font-weight: 800; }
   /* Gráficas: donas finas con 2 px de separación (color de la caja) entre partes */
   .gRango { margin: -4px 0 0; font-size: 13px; color: var(--suave); }
+  /* Extractos: lista de meses + Filtros */
+  .xPer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .xPer select { height: 44px; width: 100%; min-width: 0; border: 1px solid var(--borde2); border-radius: 12px; background-color: var(--zona); color: var(--texto); font-size: 16px; font-weight: 600;
+    padding: 0 38px 0 14px; -webkit-appearance: none; appearance: none; color-scheme: dark;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a9a9b0' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; }
+  .xPer select.filtro { border-color: var(--vino); }
+  .xPer select:disabled { opacity: .5; }
+  .xPer .chip.grande { height: 44px; border-radius: 12px; }
+  .xfCaja { max-height: calc(100vh - 32px); overflow-y: auto; }
+  .xfOpc { display: flex; flex-direction: column; gap: 6px; }
+  .xfOp { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border: 1px solid var(--borde2); border-radius: 12px; background: transparent; color: var(--texto); text-align: left; font-size: 15px; font-weight: 600; }
+  .xfOp small { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--suave); }
+  .xfOp i { flex: none; width: 18px; height: 18px; border: 2px solid var(--borde2); border-radius: 50%; }
+  .xfOp.sel { border-color: var(--vino); background: var(--vinoFondo); }
+  .xfOp.sel i { border: 5px solid var(--vino); background: var(--texto); }
+  .xfOp:disabled { opacity: .45; }
+  .xfMeses { display: flex; flex-direction: column; gap: 6px; }
+  .xfAnio { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--suave); letter-spacing: .6px; }
+  .xfGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .xfMes { height: 40px; border: 1px solid var(--borde2); border-radius: 10px; background: transparent; color: var(--texto2); font-size: 14px; }
+  .xfMes.sel { border-color: var(--vino); background: var(--vino); color: var(--texto); font-weight: 700; }
+  .xfMes:disabled { opacity: .28; }
   .gCaja { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
   .gTit { margin: 0; font-size: 16px; font-weight: 800; }
   .gDona { position: relative; width: 210px; height: 210px; margin: 2px auto 0; }
@@ -628,10 +652,17 @@
 <section id="vExtractos" class="vista pantalla oculto">
   <header><button type="button" class="volver" data-volver aria-label="Volver"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <h1>Extractos</h1></header>
-  <p class="gNota">Como el extracto del banco: con cuánto empezaste, qué entró, qué salió y con cuánto terminaste. Solo lo confirmado. Máximo 6 meses.</p>
+  <p class="gNota">Como el extracto del banco: con cuánto empezaste, qué entró, qué salió y con cuánto terminaste. Solo lo confirmado. Máximo 1 año.</p>
   <span class="mayus">Periodo</span>
-  <div id="xPeriodos" class="fila-chips" role="group" aria-label="Periodo del extracto"></div>
+  <div class="xPer">
+    <select id="xMes" aria-label="Mes del extracto"></select>
+    <button id="xFiltroBtn" type="button" class="chip grande" aria-haspopup="dialog">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      Filtros
+    </button>
+  </div>
   <p id="xRango" class="gRango"></p>
+  <p id="xRegla" class="gNota oculto"></p>
   <span class="mayus">Cuenta</span>
   <div id="xCuenta" class="segmento tres" role="group" aria-label="Cuenta del extracto">
     <button type="button" data-cuenta="Nequi">Solo Nequi</button><button type="button" data-cuenta="Efectivo">Solo Efectivo</button><button type="button" data-cuenta="ambos">Ambos</button>
@@ -655,7 +686,6 @@
 <!-- Velo, barra y ventanas centradas -->
 <div id="velo" class="oculto" aria-hidden="true"></div>
 <nav id="barra" class="oculto" aria-label="Menú principal">
-  <button type="button" class="activa" data-tab="inicio"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Inicio</button>
   <button type="button" data-tab="graficas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg>Gráficas</button>
   <button type="button" class="peso" data-tab="reporte" aria-label="Nuevo reporte">$</button>
   <button type="button" data-tab="extractos"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l4 4v16H6z"/><path d="M14 2v5h5"/><path d="M9 13h7M9 17h7"/></svg>Extractos</button>
@@ -673,6 +703,20 @@
     <div class="dos">
       <button id="fechasCancelar" type="button" class="btnSec">Cancelar</button>
       <button id="fechasAplicar" type="button" class="btnPrim" style="font-weight:800">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros del extracto: últimos 3 / 6 meses, 1 año o elegir los meses uno por uno -->
+<div id="modalXF" class="modal oculto">
+  <div role="dialog" aria-labelledby="xfTit" class="xfCaja">
+    <b id="xfTit">Periodo del extracto</b>
+    <div id="xfOpc" class="xfOpc" role="radiogroup" aria-label="Periodo"></div>
+    <div id="xfMeses" class="xfMeses oculto"></div>
+    <div id="xfError" class="error"></div>
+    <div class="dos">
+      <button id="xfCancelar" type="button" class="btnSec">Cancelar</button>
+      <button id="xfAplicar" type="button" class="btnPrim" style="font-weight:800">Aplicar</button>
     </div>
   </div>
 </div>
@@ -1233,6 +1277,7 @@ window.addEventListener('popstate', () => {
   if (estado.ventana) cerrarVentana(true);
   if (!$('modalBorrar').classList.contains('oculto')) $('modalBorrar').classList.add('oculto');
   $('modalProg').classList.add('oculto');
+  cerrarFiltrosX();
   cerrarModalBorr();
   const v = history.state && history.state.v;
   if (estado.chatTarjeta && v !== 'revisar' && v !== 'lista') { estado.rev = null; estado.lista = null; }
@@ -1532,7 +1577,7 @@ async function aplicarFiltros() {
   if (cambio) { try { await cargar(); } catch (e) { toast(e.message, true); } } else pintarReportes();
 }
 function abrirFechas() {
-  const f = (estado.vista === 'graficas' && estado.periodoG) || (estado.vista === 'extractos' && estado.periodoX) || estado.selFechas || { desde: estado.periodo.desde, hasta: estado.periodo.hasta };
+  const f = (estado.vista === 'graficas' && estado.periodoG) || estado.selFechas || { desde: estado.periodo.desde, hasta: estado.periodo.hasta };
   $('desde').value = f.desde; $('hasta').value = f.hasta; $('desde').max = $('hasta').max = hoyTxt();
   $('fechasError').textContent = '';
   $('modalFechas').classList.remove('oculto');
@@ -1544,7 +1589,6 @@ function aplicarFechas() {
   if (d < mover(h, 1, -6)) { $('fechasError').textContent = 'Máximo 6 meses a la vez.'; return; }
   $('modalFechas').classList.add('oculto');
   if (estado.vista === 'graficas') { estado.periodoG = { desde: d, hasta: h, boton: 'fechas' }; cargarGraficas(); return; }
-  if (estado.vista === 'extractos') { estado.periodoX = { desde: d, hasta: h, boton: 'fechas' }; estado.extracto = null; pintarExtractos(); return; }
   estado.selFechas = { desde: d, hasta: h }; estado.selPer = 'fechas';
   pintarPanel(); // vuelve a la ventana de filtros
 }
@@ -3026,31 +3070,95 @@ async function revisarVf() {
   }
 }
 
-/* ---------- pantalla ---------- */
-function mesX(ym) {
-  const fin = mover(ym + '-01', -1, 1), hoy = hoyTxt();
-  return { desde: ym + '-01', hasta: fin < hoy ? fin : hoy, boton: ym };
+/* ---------- pantalla ----------
+ * Periodo = meses enteros (nunca días sueltos). Un mes sale si tiene MÁS de 10 reportes confirmados; el mes en curso,
+ * además, desde el día 15 (decidido por Juan el 24-nov-2026). Lista desplegable = un mes; Filtros = últimos 3 / 6 meses,
+ * 1 año (solo cuando ya hay esos meses con reportes) o elegir los meses uno por uno (pueden quedar salteados). Máximo 1 año.
+ * estado.periodoX = { modo: 'mes' | '3' | '6' | '12' | 'elegir', meses: ['yyyy-MM', …] }.
+ */
+const X_MIN_REPORTES = 10, X_DIA_MES = 15;
+const sumarMes = (ym, k) => mover(ym + '-01', 0, k).slice(0, 7);
+function mesesEntre(a, b) { const out = []; for (let m = a; m <= b; m = sumarMes(m, 1)) out.push(m); return out; }
+function nombreMes(ym, corto) {
+  const [y, m] = ym.split('-').map(Number);
+  if (corto) return MESES[m - 1].slice(0, 3) + ' ' + y;
+  return MESES[m - 1].charAt(0).toUpperCase() + MESES[m - 1].slice(1) + ' ' + y;
 }
+/** ['2026-01','2026-02','2026-04'] → "ene – feb, abr 2026" (bloques de meses seguidos). */
+function textoMeses(lista) {
+  const bl = [];
+  lista.slice().sort().forEach(m => { const u = bl[bl.length - 1]; if (u && sumarMes(u[1], 1) === m) u[1] = m; else bl.push([m, m]); });
+  if (!bl.length) return '';
+  const ab = ym => MESES[Number(ym.slice(5, 7)) - 1].slice(0, 3);
+  if (bl[0][0].slice(0, 4) === bl[bl.length - 1][1].slice(0, 4)) return bl.map(([a, b]) => (a === b ? ab(a) : ab(a) + ' – ' + ab(b))).join(', ') + ' ' + bl[0][0].slice(0, 4);
+  return bl.map(([a, b]) => (a === b ? nombreMes(a, true) : a.slice(0, 4) === b.slice(0, 4) ? ab(a) + ' – ' + nombreMes(b, true) : nombreMes(a, true) + ' – ' + nombreMes(b, true))).join(', ');
+}
+/** Meses que se pueden sacar en extracto (del más viejo al más nuevo). */
+function mesesActivosX() {
+  const n = (estado.datos && estado.datos.mesesX) || {}, hoy = hoyTxt(), este = hoy.slice(0, 7);
+  return Object.keys(n).filter(m => n[m] > X_MIN_REPORTES && (m < este || (m === este && Number(hoy.slice(8, 10)) >= X_DIA_MES))).sort();
+}
+/** Últimos 3 / 6 / 12 meses hasta el mes activo más nuevo; [] si todavía no hay tantos meses con reportes. */
+function mesesUltimos(k, activos) {
+  if (!activos.length) return [];
+  const fin = activos[activos.length - 1], ini = sumarMes(fin, -(Number(k) - 1));
+  return ini >= activos[0] ? mesesEntre(ini, fin) : [];
+}
+/** El periodo elegido ya armado: { modo, meses, desde, hasta, seguidos } o null si no hay meses. */
+function periodoX() {
+  const p = estado.periodoX; if (!p) return null;
+  const activos = mesesActivosX();
+  const meses = ['3', '6', '12'].includes(p.modo) ? mesesUltimos(p.modo, activos) : p.meses.filter(m => activos.includes(m)).sort();
+  if (!meses.length) return null;
+  const hoy = hoyTxt(), fin = mover(meses[meses.length - 1] + '-01', -1, 1);
+  return { modo: p.modo, meses, desde: meses[0] + '-01', hasta: fin < hoy ? fin : hoy, seguidos: meses.length === mesesEntre(meses[0], meses[meses.length - 1]).length };
+}
+function etiquetaFiltroX(p) {
+  if (p.modo === '12') return '1 año';
+  if (p.modo === '3' || p.modo === '6') return 'Últimos ' + p.modo + ' meses';
+  return p.meses.length + ' meses elegidos';
+}
+/** "1 nov 2026 – 24 nov 2026" o, con meses salteados, "ene – feb, abr 2026". */
+function periodoTxtX(d) { return d.meses ? textoMeses(d.meses) : fechaLarga(d.inicio) + ' – ' + fechaLarga(d.hasta); }
 async function abrirExtractos() {
   if (!await verificarIdentidad('Extractos', 'Confirma con tu PIN o Face ID para ver tus extractos.')) return;
   if (!estado.pin) return;
-  if (!estado.periodoX || (estado.periodoX.boton !== 'fechas' && estado.periodoX.boton < mover(hoyTxt().slice(0, 7) + '-01', 0, -5).slice(0, 7))) estado.periodoX = mesX(hoyTxt().slice(0, 7));
+  // Lo guardado en el celular puede ser de antes de "mesesX": se espera lo fresco (o se pide).
+  if (!(estado.datos && estado.datos.mesesX)) {
+    await Promise.resolve(estado.frescos);
+    if (!(estado.datos && estado.datos.mesesX)) { try { await cargar(); } catch (e) { if (estado.pin) toast(e.message, true); return; } }
+    if (!estado.pin) return;
+  }
+  const activos = mesesActivosX();
+  if (!periodoX() && activos.length) estado.periodoX = { modo: 'mes', meses: [activos[activos.length - 1]] };
   if (!estado.cuentaX) estado.cuentaX = 'ambos';
   estado.extracto = null;
   mostrarVista('extractos');
   pintarExtractos();
 }
 function pintarExtractos() {
-  const p = estado.periodoX, hoy = hoyTxt();
-  const meses = [0, 1, 2, 3, 4, 5].map(i => mover(hoy.slice(0, 7) + '-01', 0, -i).slice(0, 7));
-  const corto = ym => { const [y, m] = ym.split('-').map(Number); const n = MESES[m - 1].slice(0, 3); return n.charAt(0).toUpperCase() + n.slice(1) + ' ' + y; };
-  $('xPeriodos').replaceChildren(...meses.map(ym => [ym, corto(ym)]).concat([['fechas', 'Fechas…']]).map(([k, t]) => {
-    const sel = p.boton === k;
-    const txt = k === 'fechas' && sel ? fechaCorta(p.desde) + ' – ' + fechaCorta(p.hasta) : t;
-    return el('button', { type: 'button', class: 'chip' + (sel ? ' sel' : ''), 'aria-pressed': String(sel),
-      onclick: () => { if (k === 'fechas') { abrirFechas(); return; } estado.periodoX = mesX(k); estado.extracto = null; pintarExtractos(); } }, txt);
-  }));
-  $('xRango').textContent = fechaLarga(p.desde) + ' – ' + fechaLarga(p.hasta);
+  const activos = mesesActivosX(), p = periodoX(), hoy = hoyTxt(), este = hoy.slice(0, 7);
+  const filtro = !!p && p.modo !== 'mes';
+  const ops = activos.slice().reverse().map(m => el('option', { value: m }, nombreMes(m)));
+  if (filtro) ops.unshift(el('option', { value: '', disabled: true }, etiquetaFiltroX(p)));
+  if (!activos.length) ops.push(el('option', { value: '' }, 'Aún no hay meses'));
+  $('xMes').replaceChildren(...ops);
+  $('xMes').value = p && !filtro ? p.meses[0] : '';
+  $('xMes').disabled = !activos.length;
+  $('xMes').classList.toggle('filtro', filtro);
+  $('xFiltroBtn').classList.toggle('sel', filtro);
+  $('xFiltroBtn').disabled = !activos.length;
+  $('xRango').textContent = !p ? '' : (p.seguidos ? fechaLarga(p.desde) + ' – ' + fechaLarga(p.hasta) : textoMeses(p.meses)) + (p.meses.length > 1 ? ' · ' + p.meses.length + ' meses' : '');
+  $('xRango').classList.toggle('oculto', !p);
+  // Por qué el mes en curso todavía no sale.
+  const n = ((estado.datos && estado.datos.mesesX) || {})[este] || 0, dia = Number(hoy.slice(8, 10));
+  let regla = activos.includes(este) ? '' : nombreMes(este) + ' sale aquí ' + (dia < X_DIA_MES
+    ? 'desde el ' + X_DIA_MES + ' ' + MESES[Number(este.slice(5, 7)) - 1].slice(0, 3) + ' (con más de ' + X_MIN_REPORTES + ' reportes).'
+    : 'cuando tenga más de ' + X_MIN_REPORTES + ' reportes (lleva ' + n + ').');
+  if (!activos.length) regla = 'Todavía no hay un mes con más de ' + X_MIN_REPORTES + ' reportes confirmados. ' + regla;
+  $('xRegla').textContent = regla;
+  $('xRegla').classList.toggle('oculto', !regla);
+  $('xGenerar').disabled = !p;
   document.querySelectorAll('#xCuenta button').forEach(b => { const s = b.dataset.cuenta === estado.cuentaX; b.classList.toggle('sel', s); b.setAttribute('aria-pressed', String(s)); });
   $('xCuentaTxt').textContent = estado.cuentaX === 'ambos'
     ? 'Nequi y Efectivo juntos, con la columna Método. Los traslados salen como sus 2 filas.'
@@ -3063,27 +3171,80 @@ function pintarListo() {
   $('xGenerar').classList.toggle('oculto', !!x);
   if (!x) return;
   const r = x.resumen, cuenta = x.d.cuenta === 'ambos' ? 'Nequi y Efectivo' : x.d.cuenta;
-  $('xListoSub').textContent = fechaLarga(x.d.inicio) + ' – ' + fechaLarga(x.d.hasta) + ' · ' + cuenta + ' · ' +
+  $('xListoSub').textContent = periodoTxtX(x.d) + ' · ' + cuenta + ' · ' +
     r.n + (r.n === 1 ? ' movimiento' : ' movimientos') + ' · ' + x.paginas + (x.paginas === 1 ? ' página' : ' páginas');
   const fila = (a, b, cls) => el('div', { class: 'f' }, el('span', {}, a), el('span', { class: cls || '' }, b));
   $('xFilas').replaceChildren(
     fila('Saldo inicial (' + fechaCorta(mover(x.d.inicio, -1)) + ')', pesos(r.inicial)),
     fila('Entró', pesos(r.entro, true), 'val ingreso'),
     fila('Salió', pesos(-r.salio), 'val gasto'),
+    r.huecos ? fila('Sin incluir: ' + r.huecos + ' (neto)', pesos(r.fuera, true)) : null,
     fila('Saldo final (' + fechaCorta(x.d.hasta) + ')', pesos(r.final)));
   $('xAviso').textContent = x.d.aviso ? 'Ojo: el extracto ' + x.d.aviso.charAt(0).toLowerCase() + x.d.aviso.slice(1) : '';
   $('xAviso').classList.toggle('oculto', !x.d.aviso);
   $('xGuardar').textContent = x.reintentar ? 'Tocar para guardar' : 'Guardar en el dispositivo';
 }
+/* ---------- Filtros del extracto ---------- */
+function abrirFiltrosX() {
+  const p = periodoX();
+  // Desde un mes de la lista se abre en "Elegir meses" con ese mes ya marcado (para sumarle otros).
+  estado.xf = { modo: p && p.modo !== 'mes' ? p.modo : 'elegir', meses: new Set(p ? p.meses : []) };
+  $('xfError').textContent = '';
+  pintarFiltrosX();
+  $('modalXF').classList.remove('oculto');
+}
+function cerrarFiltrosX() { estado.xf = null; $('modalXF').classList.add('oculto'); }
+function pintarFiltrosX() {
+  const f = estado.xf; if (!f) return;
+  const activos = mesesActivosX();
+  $('xfOpc').replaceChildren(...[['3', 'Últimos 3 meses'], ['6', 'Últimos 6 meses'], ['12', '1 año'], ['elegir', 'Elegir meses']].map(([k, t]) => {
+    const meses = k === 'elegir' ? null : mesesUltimos(k, activos);
+    const ok = !meses || meses.length > 0, sel = f.modo === k;
+    const sub = !meses ? (sel && f.meses.size ? textoMeses([...f.meses]) : 'Tú marcas cuáles · máximo 1 año')
+      : ok ? textoMeses(meses) : 'Cuando tengas ' + k + ' meses con reportes';
+    return el('button', { type: 'button', class: 'xfOp' + (sel ? ' sel' : ''), role: 'radio', 'aria-checked': String(sel), disabled: !ok,
+      onclick: () => { f.modo = k; if (meses) f.meses = new Set(meses); $('xfError').textContent = ''; pintarFiltrosX(); } },
+      el('i', { 'aria-hidden': 'true' }), el('span', {}, t, el('small', {}, sub)));
+  }));
+  const caja = $('xfMeses');
+  caja.classList.toggle('oculto', f.modo !== 'elegir');
+  if (f.modo !== 'elegir') return;
+  if (!activos.length) { caja.replaceChildren(el('p', { class: 'gNota' }, 'Aún no hay meses con más de ' + X_MIN_REPORTES + ' reportes.')); return; }
+  const anios = [];
+  for (let y = Number(activos[activos.length - 1].slice(0, 4)); y >= Number(activos[0].slice(0, 4)); y--) anios.push(y);
+  caja.replaceChildren(...anios.flatMap(y => [el('div', { class: 'xfAnio' }, String(y)), el('div', { class: 'xfGrid' }, ...MESES.map((nom, i) => {
+    const m = y + '-' + String(i + 1).padStart(2, '0'), on = f.meses.has(m);
+    return el('button', { type: 'button', class: 'xfMes' + (on ? ' sel' : ''), 'aria-pressed': String(on), 'aria-label': nombreMes(m), disabled: !activos.includes(m),
+      onclick: () => { if (on) f.meses.delete(m); else f.meses.add(m); $('xfError').textContent = ''; pintarFiltrosX(); } },
+      (on ? '✓ ' : '') + nom.charAt(0).toUpperCase() + nom.slice(1, 3));
+  }))]));
+}
+function aplicarFiltrosX() {
+  const f = estado.xf; if (!f) return;
+  const activos = mesesActivosX();
+  const meses = f.modo === 'elegir' ? [...f.meses].filter(m => activos.includes(m)).sort() : mesesUltimos(f.modo, activos);
+  if (!meses.length) { $('xfError').textContent = f.modo === 'elegir' ? 'Marca al menos un mes.' : 'Todavía no hay esos meses con reportes.'; return; }
+  const ult = meses[meses.length - 1];
+  if (sumarMes(meses[0], 11) < ult) { $('xfError').textContent = 'Máximo 1 año: de ' + nombreMes(meses[0], true) + ' a ' + nombreMes(ult, true) + ' hay más de 12 meses.'; return; }
+  estado.periodoX = { modo: f.modo === 'elegir' && meses.length === 1 ? 'mes' : f.modo, meses };
+  estado.extracto = null;
+  cerrarFiltrosX();
+  pintarExtractos();
+}
 async function generarExtracto() {
-  const p = estado.periodoX, cuenta = estado.cuentaX || 'ambos';
+  const p = periodoX(), cuenta = estado.cuentaX || 'ambos';
+  if (!p) return;
   const tok = {}; estado.cargaX = tok; estado.extracto = null; pintarListo();
-  const meses = Math.max(1, Math.round(pDiasApp(p.desde, p.hasta) / 30.4));
+  const meses = p.meses.length;
   $('xCargaTxt').textContent = meses >= 3 ? 'Son ' + meses + ' meses de tu hoja: puede tardar unos segundos.' : 'Leyendo tu hoja…';
   $('xCarga').classList.remove('oculto');
   try {
     const d = await api('extracto', { desde: p.desde, hasta: p.hasta, cuenta });
     if (estado.cargaX !== tok) return;
+    // Meses salteados: el PDF solo lista los elegidos (el saldo sí cuenta los de en medio). Si una cuenta sola arranca
+    // después del corte (d.inicio), los meses de antes no cuentan ni como "sin incluir".
+    const mesesPdf = p.meses.filter(m => m >= d.inicio.slice(0, 7));
+    if (mesesPdf.length && mesesPdf.length !== mesesEntre(mesesPdf[0], mesesPdf[mesesPdf.length - 1]).length) d.meses = mesesPdf;
     $('xCargaTxt').textContent = 'Armando el PDF…';
     await new Promise(r => setTimeout(r, 40)); // deja pintar el texto
     if (estado.cargaX !== tok) return;
@@ -3091,7 +3252,8 @@ async function generarExtracto() {
     d.numero = numeroExtracto(ahora.y + '-' + ahora.m);
     d.generado = fechaLarga(ahora.y + '-' + ahora.m + '-' + ahora.d) + ', ' + hora12(ahora.h, ahora.mi);
     const pdf = pdfExtracto(d);
-    const nombre = 'Extracto Byuyo ' + d.inicio + ' a ' + d.hasta + (d.cuenta === 'ambos' ? '' : ' (' + d.cuenta + ')') + '.pdf';
+    const nombre = 'Extracto Byuyo ' + (d.meses ? d.meses[0] + ' a ' + d.meses[d.meses.length - 1] + ' (' + d.meses.length + ' meses)' : d.inicio + ' a ' + d.hasta) +
+      (d.cuenta === 'ambos' ? '' : ' (' + d.cuenta + ')') + '.pdf';
     estado.extracto = { bytes: pdf.bytes, paginas: pdf.paginas, resumen: pdf.resumen, d, nombre, verificado: false, reintentar: false };
     pintarListo();
   } catch (e) {
@@ -3100,7 +3262,6 @@ async function generarExtracto() {
     if (estado.cargaX === tok) { estado.cargaX = null; $('xCarga').classList.add('oculto'); }
   }
 }
-function pDiasApp(a, b) { const f = s => { const x = s.split('-').map(Number); return Date.UTC(x[0], x[1] - 1, x[2]); }; return Math.abs(f(b) - f(a)) / 86400000; }
 function partesAhora() {
   const p = {};
   new Intl.DateTimeFormat('en-CA', { timeZone: ZONA, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -3266,15 +3427,49 @@ function pdfExtracto(d) {
   const otroAnio = d.inicio.slice(0, 4) !== d.hasta.slice(0, 4);
   const fechaF = s => fechaCorta(s) + (otroAnio ? ' ' + s.slice(2, 4) : '');
   let saldo = d.saldoInicial || 0;
-  const filas = (d.filas || []).map(f => { const antes = saldo; saldo += f.monto; return Object.assign({}, f, { antes }); });
+  const todas = (d.filas || []).map(f => { const antes = saldo; saldo += f.monto; return Object.assign({}, f, { antes }); });
+  // Meses salteados (d.meses): solo se listan los elegidos; los de en medio van en una línea gris con su neto,
+  // y el "Saldo anterior" de cada fila y el saldo final sí los cuentan (son los saldos reales).
+  const sumaM = l => l.reduce((s, f) => s + f.monto, 0);
+  const elegido = f => !d.meses || d.meses.includes(f.fecha.slice(0, 7));
+  const filas = todas.filter(elegido);
+  const items = filas.map(f => ({ f }));
+  let huecos = '', fuera = 0;
+  if (d.meses) {
+    const bloques = [];
+    mesesEntre(d.meses[0], d.meses[d.meses.length - 1]).forEach(m => {
+      if (d.meses.includes(m)) return;
+      const u = bloques[bloques.length - 1];
+      if (u && sumarMes(u.meses[u.meses.length - 1], 1) === m) u.meses.push(m); else bloques.push({ meses: [m] });
+    });
+    bloques.forEach(b => {
+      const suyas = todas.filter(f => b.meses.includes(f.fecha.slice(0, 7)));
+      b.n = suyas.length; b.neto = sumaM(suyas);
+      // va justo antes del primer movimiento elegido que viene después del bloque
+      const pos = items.findIndex(it => it.f && it.f.fecha.slice(0, 7) > b.meses[b.meses.length - 1]);
+      items.splice(pos < 0 ? items.length : pos, 0, { hueco: b });
+    });
+    huecos = textoMeses(bloques.flatMap(b => b.meses));
+    fuera = sumaM(todas.filter(f => !elegido(f)));
+  }
   const cuentan = filas.filter(f => !(ambos && f.tipo === 'Traslado')); // en Ambos el traslado sale y entra: se anula
   const resumen = { inicial: d.saldoInicial || 0, entro: cuentan.filter(f => f.monto > 0).reduce((s, f) => s + f.monto, 0),
-    salio: -cuentan.filter(f => f.monto < 0).reduce((s, f) => s + f.monto, 0), final: saldo, n: filas.length };
+    salio: -cuentan.filter(f => f.monto < 0).reduce((s, f) => s + f.monto, 0), final: saldo, n: filas.length, huecos, fuera };
+  // Cuadro por cuenta: con meses salteados, Entró/Salió solo de los meses elegidos (inicial y final son los reales).
+  let cuentasPdf = d.cuentas;
+  if (d.meses && d.cuentas) {
+    cuentasPdf = Object.assign({}, d.cuentas);
+    ['Nequi', 'Efectivo'].forEach(m => {
+      const k = d.cuentas[m]; if (!k) return;
+      const suyas = filas.filter(f => f.medio === m && f.fecha >= d.cuentas.desde);
+      cuentasPdf[m] = Object.assign({}, k, { entro: sumaM(suyas.filter(f => f.monto > 0)), salio: -sumaM(suyas.filter(f => f.monto < 0)) });
+    });
+  }
   const hayTraslados = ambos && filas.some(f => f.tipo === 'Traslado');
   const cols = ambos
     ? [['Fecha', 58], ['Categoría', 112], ['Nombre de la compra', 143], ['Saldo anterior', 82, 1], ['Valor del pago', 82, 1], ['Método', 58]]
     : [['Fecha', 62], ['Categoría', 128], ['Nombre de la compra', 181], ['Saldo anterior', 82, 1], ['Valor del pago', 82, 1]];
-  const periodo = fechaLarga(d.inicio) + ' – ' + fechaLarga(d.hasta);
+  const periodo = periodoTxtX(d);
 
   function dibujar(total) {
     const paginas = [];
@@ -3296,7 +3491,7 @@ function pdfExtracto(d) {
       if (pag === 1) return;
       const w = c.texto('By', L, 44, { b: true, tam: 15, color: VINO }); c.texto('uyo', L + w, 44, { b: true, tam: 15 });
       c.texto('Extracto Nº ' + d.numero + ' · ' + TITULAR, R, 36, { tam: 8, color: GRIS, der: true });
-      c.texto('Periodo: ' + periodo + (ambos ? '' : ' · ' + d.cuenta) + ' · Página ' + pag + ' de ' + total, R, 47, { tam: 8, color: GRIS, der: true });
+      c.texto('Periodo: ' + periodo + (ambos ? '' : ' · ' + d.cuenta) + ' · Página ' + pag + ' de ' + total, R, 47, { tam: 8, color: GRIS, der: true, max: ANCHO - 90 });
       c.linea(L, 56, R, 56, VINO, 1.5);
       y = 70; encTabla();
     };
@@ -3308,10 +3503,12 @@ function pdfExtracto(d) {
     c.texto('Página 1 de ' + total, R, 58, { tam: 8.5, color: GRIS, der: true });
     c.linea(L, 67, R, 67, VINO, 3);
     c.texto('Extracto de movimientos', L, 92, { b: true, tam: 15 });
-    let x = L;
-    [[TITULAR, 1], [' · Plataforma Byuyo · Periodo: ', 0], [periodo, 1]].concat(ambos ? [[' · Nequi y Efectivo', 0]] : [[' · Cuenta: ', 0], [d.cuenta, 1]])
-      .forEach(([t, b]) => { x += c.texto(t, x, 107, { b: !!b, tam: 9.5, color: b ? NEGRO : GRIS }); });
+    const renglon = (partes, yy) => { let x = L; partes.forEach(([t, b]) => { x += c.texto(t, x, yy, { b: !!b, tam: 9.5, color: b ? NEGRO : GRIS }); }); };
+    const deCuenta = ambos ? [[' · Nequi y Efectivo', 0]] : [[' · Cuenta: ', 0], [d.cuenta, 1]];
+    const enUno = [[TITULAR, 1], [' · Plataforma Byuyo · Periodo: ', 0], [periodo, 1]].concat(deCuenta);
     y = 116;
+    if (enUno.reduce((s, [t, b]) => s + anchoTxt(t, b ? 'F2' : 'F1', 9.5), 0) <= ANCHO) renglon(enUno, 107);
+    else { renglon([[TITULAR, 1], [' · Plataforma Byuyo', 0]].concat(deCuenta), 107); renglon([['Periodo: ', 0], [periodo, 1]], 119); y += 12; } // periodo largo: en su renglón
     if (d.aviso) { c.texto('Ojo: el extracto ' + d.aviso.charAt(0).toLowerCase() + d.aviso.slice(1), L, y + 9, { tam: 8, color: '#8a5a00' }); y += 12; }
     // ① Resumen
     y += 6;
@@ -3325,15 +3522,16 @@ function pdfExtracto(d) {
       c.texto(v, x0 + 8, y + 31, { b: true, tam: 12, color: col, max: wc - 12 });
     });
     y += 40;
+    if (huecos) { c.texto('Sin incluir: ' + huecos + ' (neto ' + plata(fuera, true) + '). Ese valor sí cuenta en el saldo final.', L, y + 11, { tam: 7.5, color: GRIS2, max: ANCHO }); y += 12; }
     if (hayTraslados) { c.texto('Entró y Salió no cuentan los traslados entre Nequi y Efectivo (salen y entran por el mismo valor).', L, y + 11, { tam: 7.5, color: GRIS2 }); y += 12; }
     // ② Por cuenta (solo en Ambos)
-    if (ambos && d.cuentas && (d.cuentas.Nequi || d.cuentas.Efectivo)) {
+    if (ambos && cuentasPdf && (cuentasPdf.Nequi || cuentasPdf.Efectivo)) {
       y += 14;
       c.texto('POR CUENTA', L, y + 9, { b: true, tam: 9.5, color: VINO }); y += 15;
       const corte = d.cuentas.desde > d.inicio;
       const wk = (ANCHO - 8) / 2;
       ['Nequi', 'Efectivo'].forEach((m, i) => {
-        const k = d.cuentas[m]; if (!k) return;
+        const k = cuentasPdf[m]; if (!k) return;
         const x0 = L + i * (wk + 8);
         c.rect(x0, y, wk, 66, { relleno: '#f6f4f2', radio: 5 });
         c.texto(m, x0 + 10, y + 14, { b: true, tam: 10 });
@@ -3350,11 +3548,21 @@ function pdfExtracto(d) {
     y += 14;
     c.texto('MOVIMIENTOS', L, y + 9, { b: true, tam: 9.5, color: VINO }); y += 14;
     encTabla();
-    if (!filas.length) { c.texto('No hubo movimientos confirmados en este periodo.', L + 5, y + 15, { tam: 9, color: GRIS2 }); y += ALTO_FILA; }
-    filas.forEach((f, i) => {
+    if (!filas.length) { c.texto('No hubo movimientos confirmados en ' + (d.meses ? 'los meses elegidos.' : 'este periodo.'), L + 5, y + 15, { tam: 9, color: GRIS2 }); y += ALTO_FILA; }
+    let par = 0;
+    items.forEach((it, i) => {
       // la última fila nunca queda separada de la línea del saldo final
-      if (y + ALTO_FILA + (i === filas.length - 1 ? 22 : 0) > ABAJO) nueva();
-      if (i % 2) c.rect(L, y, ANCHO, ALTO_FILA, { relleno: '#faf9f8' });
+      if (y + ALTO_FILA + (i === items.length - 1 ? 22 : 0) > ABAJO) nueva();
+      if (it.hueco) { // meses no elegidos, en medio
+        const h = it.hueco;
+        c.rect(L, y, ANCHO, ALTO_FILA, { relleno: '#f1eeeb' });
+        c.linea(L, y + ALTO_FILA, R, y + ALTO_FILA, '#ecebe9', 0.5);
+        c.texto('Sin incluir: ' + textoMeses(h.meses) + ' · ' + (h.n ? h.n + (h.n === 1 ? ' movimiento' : ' movimientos') : 'sin movimientos'), L + 5, y + 14.5, { tam: 8, color: GRIS, max: ANCHO - 120 });
+        if (h.n) c.texto('neto ' + plata(h.neto, true), R - 5, y + 14.5, { tam: 8, color: GRIS, der: true });
+        y += ALTO_FILA; return;
+      }
+      const f = it.f;
+      if (par++ % 2) c.rect(L, y, ANCHO, ALTO_FILA, { relleno: '#faf9f8' });
       c.linea(L, y + ALTO_FILA, R, y + ALTO_FILA, '#ecebe9', 0.5);
       let x = L;
       const celdas = [
@@ -3398,6 +3606,10 @@ $('teclado').addEventListener('click', e => { const b = e.target.closest('button
 $('vfTeclado').addEventListener('click', e => { const b = e.target.closest('button'); if (b) teclaVf(b.dataset.k); });
 $('vfCancelar').addEventListener('click', () => cerrarVerif(false));
 $('xCuenta').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; estado.cuentaX = b.dataset.cuenta; estado.extracto = null; pintarExtractos(); });
+$('xMes').addEventListener('change', () => { const m = $('xMes').value; if (!m) return; estado.periodoX = { modo: 'mes', meses: [m] }; estado.extracto = null; pintarExtractos(); });
+$('xFiltroBtn').addEventListener('click', abrirFiltrosX);
+$('xfCancelar').addEventListener('click', cerrarFiltrosX);
+$('xfAplicar').addEventListener('click', aplicarFiltrosX);
 $('xGenerar').addEventListener('click', generarExtracto);
 $('xGuardar').addEventListener('click', tocarGuardar);
 $('desBtn').addEventListener('click', () => { if (estado.deshacer) estado.deshacer.fin(false); });
@@ -3415,6 +3627,7 @@ document.addEventListener('keydown', e => {
     else if (!$('modalBorr').classList.contains('oculto')) cerrarModalBorr();
     else if (!$('modalProg').classList.contains('oculto')) $('modalProg').classList.add('oculto');
     else if (!$('modalFechas').classList.contains('oculto')) $('modalFechas').classList.add('oculto');
+    else if (!$('modalXF').classList.contains('oculto')) cerrarFiltrosX();
     else if (estado.ventana) cerrarVentana();
   }
 });
@@ -3499,11 +3712,10 @@ $('borrarSi').addEventListener('click', borrarActual);
 $('barra').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   const t = b.dataset.tab;
-  if (t === 'inicio') { window.scrollTo({ top: 0, behavior: POCO_MOVIMIENTO ? 'auto' : 'smooth' }); return; }
   if (t === 'reporte') { $('lblNuevo').scrollIntoView({ behavior: POCO_MOVIMIENTO ? 'auto' : 'smooth', block: 'center' }); setTimeout(() => $('frase').focus(), 350); return; }
   if (t === 'graficas') { abrirGraficas(); return; }
   if (t === 'extractos') { abrirExtractos(); return; }
-  // (El botón "Más" se quitó de la barra: decidido por Juan el 24-nov-2026.)
+  // ("Más" e "Inicio" se quitaron de la barra: decidido por Juan el 24-nov-2026; el $ lleva a Nuevo reporte.)
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
