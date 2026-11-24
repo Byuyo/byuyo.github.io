@@ -77,6 +77,7 @@
   .medios > div { background: var(--zona2); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
   .medios .r { font-size: 12px; color: var(--suave); display: flex; align-items: center; gap: 6px; }
   .medios .v { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+  .totalNota { font-size: 12px; color: var(--suave); margin: 8px 0 0; text-align: center; }
   .tarjetaSobra { background: var(--zona); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .mayus { font-size: 12px; font-weight: 700; color: var(--suave); text-transform: uppercase; letter-spacing: .8px; }
   .tarjetaSobra .izq { display: flex; flex-direction: column; gap: 2px; }
@@ -84,14 +85,13 @@
   .tarjetaSobra .num { font-size: 20px; font-weight: 800; white-space: nowrap; }
   .borrador { margin-top: 6px; min-height: 56px; border: 1px solid #5a4330; border-radius: 12px; background: #2a2521; display: flex; align-items: center; gap: 12px; padding: 8px 14px; text-align: left; width: 100%; }
   .borrador .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .borrador .t b { font-size: 14px; } .borrador .t span { font-size: 12px; color: var(--suave); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .borrador .t b { font-size: 14px; } .borrador .t span { font-size: 12px; color: var(--suave); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
   .borrador .ir { font-size: 13px; font-weight: 700; color: var(--naranja); white-space: nowrap; }
   .nuevo { display: flex; flex-direction: column; gap: 8px; }
   .nuevo label { margin-top: 6px; }
   .escribir { display: flex; gap: 8px; }
   .escribir input { flex: 1; min-width: 0; height: 52px; border: 1px solid var(--borde); border-radius: 12px; background: var(--zona); padding: 0 14px; }
   .btnCuadro { width: 52px; height: 52px; flex: none; border: 0; border-radius: 12px; background: var(--zona2); display: flex; align-items: center; justify-content: center; }
-  .btnCuadro.escuchando { background: var(--vino); }
   .btnPrim { height: 50px; border: 0; border-radius: 12px; background: var(--vino); font-size: 16px; font-weight: 700; }
   .btnSec { height: 50px; border: 0; border-radius: 12px; background: var(--zona2); font-size: 16px; font-weight: 600; }
   .reportes { display: flex; flex-direction: column; gap: 10px; }
@@ -138,7 +138,9 @@
   .rep.prog .btnDet { background: #433759; border: 1px solid #5a4b75; }
   .vacio { background: var(--zona); border-radius: 14px; padding: 20px 14px; text-align: center; font-size: 14px; color: var(--suave); }
   .gasto { color: var(--gasto); } .ingreso { color: var(--ingreso); } .prestamo { color: var(--prestamo); } .cero { color: var(--cero); }
+  .val.traslado { color: #b3b9c4; } /* Traslado: ni gasto ni ingreso (gris plata, decidido por Juan 22-nov) */
   .cargando { opacity: .55; pointer-events: none; transition: opacity .2s; }
+  .gCaja.cargando { opacity: .2; } /* Gráficas: los números del periodo anterior casi no se ven mientras llega el nuevo */
 
   /* Velo y ventanas ancladas (Filtros · Claude) */
   #velo { position: fixed; inset: 0; z-index: 40; background: rgba(10,10,12,.55); }
@@ -173,8 +175,49 @@
   .claudeBar { display: flex; gap: 8px; padding: 8px 12px calc(14px + var(--safeB)); }
   .claudeBar input { flex: 1; min-width: 0; height: 44px; border: 1px solid #4a3a2e; border-radius: 12px; background: #1c1917; padding: 0 12px; }
   .btnFoto { width: 44px; height: 44px; flex: none; border: 0; border-radius: 12px; background: #3a2c22; color: var(--naranja); display: flex; align-items: center; justify-content: center; }
-  .btnVoz { width: 44px; height: 44px; flex: none; border: 0; border-radius: 12px; background: var(--naranja); color: #241f1c; display: flex; align-items: center; justify-content: center; }
-  .btnVoz.escuchando { background: var(--vino); color: var(--texto); }
+
+  /* Bloque 4 · Nuevo reporte = chat con Claude */
+  .filaReporte { display: flex; gap: 8px; position: relative; }
+  .filaReporte .btnCuadro { width: 44px; height: 50px; }
+  .filaReporte .btnPrim { flex: 1; }
+  #bModelo.opus { outline: 2px solid #d97757; outline-offset: -2px; }
+  #bModelo .etq { position: absolute; margin-top: 30px; font-size: 9px; font-weight: 800; color: #d97757; letter-spacing: .3px; }
+  .menuChico { position: absolute; z-index: 30; top: 56px; background: var(--panel); border: 1px solid var(--borde2); border-radius: 12px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.6); min-width: 210px; display: flex; flex-direction: column; }
+  .menuChico button { display: flex; align-items: center; gap: 10px; text-align: left; border: 0; background: transparent; border-radius: 8px; padding: 11px 10px; font-size: 14px; color: var(--texto); }
+  .menuChico button + button { border-top: 1px solid var(--borde); }
+  .menuChico button.sel { background: #3a2c22; }
+  .menuChico small { display: block; font-size: 11px; color: var(--suave); margin-top: 2px; }
+  .menuChico .ok { margin-left: auto; color: var(--naranja); }
+  .adjunto { display: flex; align-items: center; gap: 8px; background: var(--zona); border: 1px solid var(--borde); border-radius: 10px; padding: 6px 6px 6px 10px; font-size: 13px; color: var(--texto2); }
+  .adjunto span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .adjunto button { width: 32px; height: 32px; border: 0; border-radius: 8px; background: var(--zona2); color: var(--suave); }
+  #chat { position: fixed; inset: 0; z-index: 60; background: #241f1c; display: flex; flex-direction: column; padding-top: var(--safeT); }
+  #chat .claudeCab { padding: 6px 6px 6px 16px; min-height: 52px; }
+  #chat .claudeCab b { color: var(--texto); font-size: 16px; }
+  #chat .claudeCab .mod { font-size: 12px; color: #c9a88c; font-weight: 600; }
+  #chatC { max-width: 560px; width: 100%; margin: 0 auto; }
+  #chat .claudeBar { max-width: 560px; width: 100%; margin: 0 auto; border-top: 1px solid #3a2f27; flex-direction: column; }
+  #chat .claudeBar .fila { display: flex; gap: 8px; align-items: center; }
+  .btnEnviar { width: 44px; height: 44px; flex: none; border: 0; border-radius: 12px; background: var(--vino); display: flex; align-items: center; justify-content: center; }
+  .tarjC { align-self: stretch; background: var(--zona); border: 1px solid var(--borde); border-radius: 12px; padding: 11px; display: flex; flex-direction: column; gap: 9px; }
+  .tarjC .arriba { display: flex; gap: 10px; align-items: center; }
+  .tarjC .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .tarjC .t b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .tarjC .t span { font-size: 12px; color: var(--suave); }
+  .tarjC .detC { font-size: 12px; color: var(--texto2); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .tarjC .detC em { font-style: normal; color: var(--suave); }
+  .tarjC .aviso { font-size: 12px; color: var(--naranja); }
+  .tarjC .bts { display: flex; gap: 8px; }
+  .tarjC .bts button { height: 40px; border: 0; border-radius: 10px; font-size: 14px; font-weight: 700; }
+  .tarjC .bEd { width: 96px; background: var(--zona2); color: var(--texto2); }
+  .tarjC .bReg { flex: 1; background: var(--vino); color: #fff; }
+  .tarjC .bReg:disabled { opacity: .5; }
+  .tarjC.hecha { background: #1f2a22; border-color: #2f5a3c; }
+  .tarjC .listo { font-size: 13px; color: var(--ingreso); font-weight: 700; }
+  .tarjC .prods { border-top: 1px solid var(--borde); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--texto2); }
+  .tarjC .prods div { display: flex; justify-content: space-between; gap: 8px; }
+  .verMas { border: 0; background: transparent; color: var(--naranja); font-size: 12px; font-weight: 700; padding: 0; }
+  .escribiendo { align-self: flex-start; font-size: 12px; color: var(--suave); font-style: italic; padding-left: 4px; }
+  .descartar { align-self: center; border: 0; background: transparent; color: var(--suave); font-size: 12px; text-decoration: underline; padding: 8px; }
 
   /* Ventanas centradas (fechas, borrar) */
   .modal { position: fixed; inset: 0; z-index: 70; background: rgba(10,10,12,.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -182,6 +225,12 @@
   .modal b { font-size: 17px; font-weight: 800; }
   .campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .campo label { font-size: 12px; color: var(--suave); }
+  /* Solo iPhone/iPad: la fecha se salía del cuadro y "Gasto variable" se cortaba. */
+  @supports (-webkit-touch-callout: none) {
+    .campo input[type=date] { -webkit-appearance: none; appearance: none; display: block; text-align: left; }
+    .campo input[type=date]::-webkit-date-and-time-value { text-align: left; }
+    .rForm .campo select { padding: 0 4px 0 10px; font-size: 15px; }
+  }
   .campo input, .campo select { height: 46px; border: 1px solid var(--borde); border-radius: 10px; background: var(--zona2); padding: 0 10px; min-width: 0; width: 100%; color-scheme: dark; }
 
   /* Barra de abajo (retráctil) */
@@ -196,6 +245,43 @@
   .pantalla { padding: calc(10px + var(--safeT)) 16px calc(24px + var(--safeB)); display: flex; flex-direction: column; gap: 12px; min-height: 100vh; }
   .pantalla > header { display: flex; align-items: center; gap: 8px; height: 44px; }
   .pantalla h1 { margin: 0; font-size: 20px; font-weight: 800; }
+  /* Gráficas: donas finas con 2 px de separación (color de la caja) entre partes */
+  .gRango { margin: -4px 0 0; font-size: 13px; color: var(--suave); }
+  .gCaja { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+  .gTit { margin: 0; font-size: 16px; font-weight: 800; }
+  .gDona { position: relative; width: 210px; height: 210px; margin: 2px auto 0; }
+  .gDona svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .gDona path { stroke: var(--zona); stroke-width: 2; cursor: pointer; transition: opacity .15s; }
+  .gDona.foco path:not(.on) { opacity: .28; }
+  .gCentro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; pointer-events: none; padding: 0 44px; gap: 2px; }
+  .gCentro small { color: var(--suave); font-size: 12px; line-height: 1.25; }
+  .gCentro b { font-size: 18px; font-weight: 800; color: var(--texto); }
+  .gLeyenda { display: flex; flex-direction: column; gap: 2px; }
+  .gFila { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; min-height: 48px; width: 100%;
+    padding: 6px 8px; border: 0; border-radius: 10px; background: none; color: var(--texto); text-align: left; font: inherit; }
+  .gFila.on { background: var(--zona2); }
+  .gPunto { width: 12px; height: 12px; border-radius: 4px; margin: 0 6px; }
+  .gNombre { font-size: 14px; font-weight: 600; min-width: 0; }
+  .gNombre small, .gMonto small { display: block; color: var(--suave); font-size: 12px; font-weight: 500; }
+  .gMonto { text-align: right; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .gVacio { text-align: center; color: var(--suave); padding: 28px 0; font-size: 14px; }
+  .gNota { margin: 0; font-size: 12px; color: var(--apagado); line-height: 1.45; }
+  /* Extractos */
+  .segmento.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .segmento.tres button { font-size: 14px; }
+  .xListo { padding: 14px 0 14px; display: flex; flex-direction: column; gap: 8px; }
+  .xListo > .btnPrim, .xListo > .gNota { margin: 0 16px; }
+  .xTit { padding: 0 16px; display: flex; flex-direction: column; gap: 2px; }
+  .xTit b { font-size: 16px; font-weight: 800; } .xTit span { font-size: 13px; }
+  .xCarga { position: fixed; inset: 0; z-index: 75; background: rgba(24,24,26,.96); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; }
+  .xCarga b { font-size: 18px; font-weight: 800; } .xCarga span { font-size: 14px; max-width: 300px; }
+  .xGiro { width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--zona2); border-top-color: var(--vino); animation: girar .9s linear infinite; margin-bottom: 6px; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  .vfCaja { align-items: center; }
+  .vfCaja .puntos { margin-top: 8px; }
+  .teclado.chico { margin-top: 2px; grid-template-columns: repeat(3, 64px); gap: 10px 22px; }
+  .teclado.chico button { width: 64px; height: 64px; font-size: 24px; }
   .volver { width: 44px; height: 44px; border: 0; border-radius: 12px; background: var(--zona); display: flex; align-items: center; justify-content: center; }
   .caja { background: var(--zona); border-radius: 16px; }
   .rCab { padding: 14px; display: flex; align-items: center; gap: 12px; }
@@ -205,6 +291,8 @@
   .rCab .val { font-size: 22px; }
   .rForm { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
   .rejilla { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
+  /* Celular angosto: Categoría y Subcategoría a lo ancho (si no, se cortan: "Sin subca…") */
+  @media (max-width: 430px) { .rejilla > .campo:nth-child(n+3) { grid-column: 1 / -1; } }
   .rForm .campo input, .rForm .campo select { height: 42px; padding: 0 12px; }
   .segmento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: var(--zona2); border-radius: 12px; padding: 4px; }
   .segmento button { height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--suave); font-size: 15px; }
@@ -256,6 +344,15 @@
   #toast { position: fixed; left: 16px; right: 16px; bottom: calc(96px + var(--safeB)); max-width: 488px; margin: 0 auto; z-index: 80;
     background: var(--zona2); border-left: 4px solid var(--ingreso); padding: 12px 14px; border-radius: 10px; box-shadow: 0 6px 24px #0008; font-size: 14px; }
   #toast.mal { border-left-color: var(--gasto); }
+  #deshacer { position: fixed; left: 16px; right: 16px; bottom: calc(96px + var(--safeB)); max-width: 488px; margin: 0 auto; z-index: 81;
+    background: var(--zona2); border-left: 4px solid var(--vino); border-radius: 10px; box-shadow: 0 6px 24px #0008; overflow: hidden; }
+  .desFila { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; min-height: 52px; }
+  #desTxt { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
+  #desBtn { flex: none; height: 40px; padding: 0 12px; border: 1px solid var(--borde2); border-radius: 10px; background: var(--zona); font-size: 14px; font-weight: 800; color: var(--texto); }
+  #desBtn b { display: inline-block; min-width: 1ch; margin-left: 4px; color: var(--suave); font-weight: 700; }
+  .desBarra { height: 3px; background: #24242a; } .desBarra i { display: block; height: 100%; background: var(--vino); transform-origin: left; }
+  .desBarra i.corre { animation: menguar 5s linear forwards; }
+  @keyframes menguar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 </style>
 </head>
 <body>
@@ -271,7 +368,7 @@
     <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
     <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
     <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
-    <button type="button" class="plano" data-k="cara" aria-label="Entrar con Face ID (llega en la etapa 3)">
+    <button type="button" class="plano" data-k="cara" id="btnCara" aria-label="Entrar con Face ID">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M9 9v1M15 9v1M12 9v4h-1"/><path d="M9 16a4 4 0 0 0 6 0"/></svg>
     </button>
     <button type="button" data-k="0">0</button>
@@ -279,7 +376,7 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-6 6M11 9l6 6"/></svg>
     </button>
   </div>
-  <p class="pie">Face ID llega en la etapa 3</p>
+  <p class="pie" id="pieCara">Toca la cara para activar Face ID</p>
 </section>
 
 <!-- ============ 2 · Inicio ============ -->
@@ -300,6 +397,7 @@
       <div><span class="r"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>Nequi</span><span id="nequi" class="v">—</span></div>
       <div><span class="r"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>Efectivo</span><span id="efectivo" class="v">—</span></div>
     </div>
+    <p id="totalNota" class="totalNota oculto"></p>
   </section>
 
   <section id="sobra" class="tarjetaSobra oculto">
@@ -320,15 +418,31 @@
     </button>
     <label id="lblNuevo" for="frase" class="mayus">Nuevo reporte</label>
     <div class="escribir">
-      <input id="frase" type="text" maxlength="300" autocomplete="off" enterkeyhint="go">
-      <button id="foto" type="button" class="btnCuadro" aria-label="Tomar foto de la factura">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg>
-      </button>
-      <button id="mic" type="button" class="btnCuadro" aria-label="Dictar con el micrófono">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg>
-      </button>
+      <input id="frase" type="text" maxlength="1500" autocomplete="off" enterkeyhint="send" placeholder="Escribe o dicta con el teclado">
     </div>
-    <button id="revisar" type="button" class="btnPrim">Revisar</button>
+    <div id="adjInicio" class="adjunto oculto"><span></span><button type="button" data-quitar-adj aria-label="Quitar archivo">✕</button></div>
+    <div class="filaReporte">
+      <button id="bMas" type="button" class="btnCuadro" aria-label="Adjuntar foto o PDF" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button id="bModelo" type="button" class="btnCuadro" aria-label="Modelo de Claude: Sonnet 5.5 medio" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><g stroke="#d97757" stroke-width="2.3" stroke-linecap="round"><path d="M12 12L12 2.5"/><path d="M12 12L18.4 4.6"/><path d="M12 12L21.5 9.4"/><path d="M12 12L20.6 16.6"/><path d="M12 12L15.6 21"/><path d="M12 12L8.6 21.2"/><path d="M12 12L3.2 17"/><path d="M12 12L2.6 9.8"/><path d="M12 12L6 4.2"/></g></svg>
+        <span class="etq oculto">OPUS</span>
+      </button>
+      <button id="revisar" type="button" class="btnPrim">Registrar</button>
+      <div id="menuMas" class="menuChico oculto" style="left:0" role="menu">
+        <button type="button" data-adj="camara" role="menuitem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e5a06a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg>Cámara</button>
+        <button type="button" data-adj="galeria" role="menuitem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e5a06a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Galería</button>
+        <button type="button" data-adj="pdf" role="menuitem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e5a06a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 17h4"/></svg>Archivo (PDF)</button>
+      </div>
+      <div id="menuModelo" class="menuChico oculto" style="left:52px;width:260px" role="menu">
+        <button type="button" data-modelo="sonnet" role="menuitemradio"><span><b>Sonnet 5.5 · medio</b><small>Automático · reportes del día a día</small></span><span class="ok">✓</span></button>
+        <button type="button" data-modelo="opus" role="menuitemradio"><span><b>Opus 5.5 · medio</b><small>Listas largas, facturas o instrucciones especiales</small></span><span class="ok">✓</span></button>
+      </div>
+    </div>
+    <input id="archCamara" type="file" accept="image/*" capture="environment" hidden>
+    <input id="archGaleria" type="file" accept="image/*" hidden>
+    <input id="archPdf" type="file" accept="application/pdf" hidden>
     <div id="fraseError" class="error" role="alert"></div>
   </section>
 
@@ -379,24 +493,31 @@
     </div>
   </div>
 
-  <!-- 2d · Claude ayuda (ventana anclada debajo de Revisar) -->
-  <section id="ventanaClaude" class="ventana oculto" role="dialog" aria-label="Terminar el reporte">
-    <div class="claudeCab"><span class="punto" aria-hidden="true"></span><b>Claude <span>· No se entendió bien el reporte</span></b>
-      <button id="xClaude" type="button" class="xBtn" aria-label="Cerrar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    </div>
-    <div id="chatAyuda" class="chat"></div>
-    <div class="dos" style="padding:8px 12px 0">
-      <button id="ayudaCancelar" type="button" class="btnSec" style="height:40px;font-size:14px">Cancelar</button>
-      <button id="ayudaSi" type="button" class="btnPrim" style="height:40px;font-size:14px;font-weight:800">Sí, revisar ›</button>
-    </div>
-    <div class="claudeBar">
-      <label for="ayudaTxt" class="sr">Escríbele a Claude</label>
-      <input id="ayudaTxt" type="text" maxlength="200" autocomplete="off" enterkeyhint="send">
-      <button type="button" class="btnFoto" data-foto aria-label="Enviar foto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
-      <button id="ayudaVoz" type="button" class="btnVoz" aria-label="Dictar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg></button>
-    </div>
-  </section>
 </main>
+
+<!-- 2d · Chat con Claude (pantalla completa; un chat por reporte) -->
+<section id="chat" class="oculto" role="dialog" aria-label="Chat con Claude">
+  <div class="claudeCab">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g stroke="#d97757" stroke-width="2.3" stroke-linecap="round"><path d="M12 12L12 2.5"/><path d="M12 12L18.4 4.6"/><path d="M12 12L21.5 9.4"/><path d="M12 12L20.6 16.6"/><path d="M12 12L15.6 21"/><path d="M12 12L8.6 21.2"/><path d="M12 12L3.2 17"/><path d="M12 12L2.6 9.8"/><path d="M12 12L6 4.2"/></g></svg>
+    <b>Claude <span id="chatModelo" class="mod"></span></b>
+    <button id="xChat" type="button" class="xBtn" aria-label="Cerrar (queda como reporte sin terminar)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div id="chatC" class="chat" aria-live="polite"></div>
+  <div class="claudeBar" style="position:relative">
+    <div id="adjChat" class="adjunto oculto"><span></span><button type="button" data-quitar-adj aria-label="Quitar archivo">✕</button></div>
+    <div id="menuMasChat" class="menuChico oculto" style="left:12px;top:auto;bottom:64px" role="menu">
+      <button type="button" data-adj="camara" role="menuitem">Cámara</button>
+      <button type="button" data-adj="galeria" role="menuitem">Galería</button>
+      <button type="button" data-adj="pdf" role="menuitem">Archivo (PDF)</button>
+    </div>
+    <div class="fila">
+      <button id="bMasChat" type="button" class="btnFoto" aria-label="Adjuntar foto o PDF"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+      <label for="chatTxt" class="sr">Escríbele a Claude</label>
+      <input id="chatTxt" type="text" maxlength="1500" autocomplete="off" enterkeyhint="send" placeholder="Escribe o dicta con el teclado…">
+      <button id="chatEnviar" type="button" class="btnEnviar" aria-label="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </div>
+  </div>
+</section>
 
 <!-- ============ 3 · Revisar reporte ============ -->
 <section id="vRevisar" class="vista pantalla oculto">
@@ -428,8 +549,8 @@
     <div class="campo"><label for="rNota" id="rNotaRot">Nota</label><input id="rNota" type="text" maxlength="300" autocomplete="off"></div>
   </section>
   <label class="discreto"><input id="rInnecesario" type="checkbox">Marcar como innecesario</label>
-  <label id="rAprenderCaja" class="discreto oculto"><input id="rAprender" type="checkbox" checked><span id="rAprenderTxt"></span></label>
   <div id="rLinea" class="lineaAviso"></div>
+  <div id="rCorte" class="lineaAviso oculto"></div>
   <div id="rAlcanza" class="caja alcanza oculto"></div>
   <div id="regError" class="error" role="alert"></div>
   <div class="pie2">
@@ -445,12 +566,6 @@
   <section class="portal" aria-label="Chat">
     <div class="cabP"><span class="punto" aria-hidden="true"></span>Claude</div>
     <div id="chatLista" class="chat"></div>
-    <div class="claudeBar">
-      <label for="listaTxt" class="sr">Escríbele a Claude</label>
-      <input id="listaTxt" type="text" maxlength="200" autocomplete="off" enterkeyhint="send">
-      <button type="button" class="btnFoto" data-foto aria-label="Enviar foto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
-      <button id="listaVoz" type="button" class="btnVoz" aria-label="Dictar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></svg></button>
-    </div>
   </section>
   <section class="caja rForm"><div class="campo"><label for="lFecha" id="lFechaTxt">Fecha</label><input id="lFecha" type="date"></div></section>
   <section id="lCompra" class="caja compraCab oculto"></section>
@@ -490,6 +605,53 @@
   </div>
 </section>
 
+<!-- ============ 4 · Gráficas (la app las calcula con las filas reales del periodo; no toca la hoja) ============ -->
+<section id="vGraficas" class="vista pantalla oculto">
+  <header><button type="button" class="volver" data-volver aria-label="Volver"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <h1>Gráficas</h1></header>
+  <div id="gPeriodos" class="fila-chips" role="group" aria-label="Periodo de las gráficas"></div>
+  <p id="gRango" class="gRango"></p>
+  <section class="caja gCaja" aria-labelledby="gT1">
+    <h2 id="gT1" class="gTit">Entró y salió</h2>
+    <div id="gDona1" class="gDona"></div>
+    <div id="gLey1" class="gLeyenda"></div>
+  </section>
+  <section class="caja gCaja" aria-labelledby="gT2">
+    <h2 id="gT2" class="gTit">¿En qué se fue la plata?</h2>
+    <div id="gDona2" class="gDona"></div>
+    <div id="gLey2" class="gLeyenda"></div>
+  </section>
+  <p class="gNota">Solo lo real (confirmado). Sin traslados ni lo que vale $ 0. Los reembolsos ya están restados de su categoría.</p>
+</section>
+
+<!-- ============ 5 · Extractos PDF (la app arma el PDF en el celular; el puente solo da las filas) ============ -->
+<section id="vExtractos" class="vista pantalla oculto">
+  <header><button type="button" class="volver" data-volver aria-label="Volver"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <h1>Extractos</h1></header>
+  <p class="gNota">Como el extracto del banco: con cuánto empezaste, qué entró, qué salió y con cuánto terminaste. Solo lo confirmado. Máximo 6 meses.</p>
+  <span class="mayus">Periodo</span>
+  <div id="xPeriodos" class="fila-chips" role="group" aria-label="Periodo del extracto"></div>
+  <p id="xRango" class="gRango"></p>
+  <span class="mayus">Cuenta</span>
+  <div id="xCuenta" class="segmento tres" role="group" aria-label="Cuenta del extracto">
+    <button type="button" data-cuenta="Nequi">Solo Nequi</button><button type="button" data-cuenta="Efectivo">Solo Efectivo</button><button type="button" data-cuenta="ambos">Ambos</button>
+  </div>
+  <p id="xCuentaTxt" class="gNota"></p>
+  <button id="xGenerar" type="button" class="btnPrim" style="font-weight:800">Generar extracto</button>
+  <section id="xListo" class="caja xListo oculto" aria-live="polite">
+    <div class="xTit"><b>Extracto listo</b><span id="xListoSub" class="suave"></span></div>
+    <div id="xFilas" class="filasDet"></div>
+    <p id="xAviso" class="gNota oculto"></p>
+    <button id="xGuardar" type="button" class="btnPrim" style="font-weight:800">Guardar en el dispositivo</button>
+    <p class="gNota" style="text-align:center">Antes de guardarlo te pido tu PIN o Face ID otra vez.</p>
+  </section>
+  <div id="xCarga" class="xCarga oculto" role="status" aria-live="polite">
+    <div class="xGiro" aria-hidden="true"></div>
+    <b>Armando tu extracto</b>
+    <span id="xCargaTxt" class="suave"></span>
+  </div>
+</section>
+
 <!-- Velo, barra y ventanas centradas -->
 <div id="velo" class="oculto" aria-hidden="true"></div>
 <nav id="barra" class="oculto" aria-label="Menú principal">
@@ -497,7 +659,6 @@
   <button type="button" data-tab="graficas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg>Gráficas</button>
   <button type="button" class="peso" data-tab="reporte" aria-label="Nuevo reporte">$</button>
   <button type="button" data-tab="extractos"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l4 4v16H6z"/><path d="M14 2v5h5"/><path d="M9 13h7M9 17h7"/></svg>Extractos</button>
-  <button type="button" data-tab="mas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg>Más</button>
 </nav>
 
 <div id="modalFechas" class="modal oculto">
@@ -516,6 +677,29 @@
   </div>
 </div>
 
+<!-- Verificación con PIN o Face ID (Extractos: al entrar y antes de guardar el PDF) -->
+<div id="modalVerif" class="modal oculto">
+  <div role="dialog" aria-labelledby="vfTit" aria-describedby="vfTxt" class="vfCaja">
+    <b id="vfTit">Confirma que eres tú</b>
+    <span id="vfTxt" class="suave" style="font-size:14px;line-height:1.45;text-align:center"></span>
+    <div id="vfPuntos" class="puntos" role="status" aria-label="PIN: 0 de 4 dígitos"><span></span><span></span><span></span><span></span></div>
+    <div id="vfError" class="error" role="alert" style="text-align:center"></div>
+    <div id="vfTeclado" class="teclado chico">
+      <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+      <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+      <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+      <button type="button" class="plano" data-k="cara" id="vfCara" aria-label="Usar Face ID">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M9 9v1M15 9v1M12 9v4h-1"/><path d="M9 16a4 4 0 0 0 6 0"/></svg>
+      </button>
+      <button type="button" data-k="0">0</button>
+      <button type="button" class="plano" data-k="borrar" aria-label="Borrar un dígito">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-6 6M11 9l6 6"/></svg>
+      </button>
+    </div>
+    <button id="vfCancelar" type="button" class="btnSec" style="width:100%;margin-top:6px">Cancelar</button>
+  </div>
+</div>
+
 <div id="modalBorrar" class="modal oculto">
   <div role="alertdialog" aria-labelledby="borrarTit" aria-describedby="borrarTxt">
     <b id="borrarTit">¿Borrar este reporte?</b>
@@ -525,6 +709,18 @@
       <button id="borrarNo" type="button" class="btnSec">Cancelar</button>
       <button id="borrarSi" type="button" class="btnPrim" style="font-weight:800">Sí, borrar</button>
     </div>
+  </div>
+</div>
+
+<!-- Solo cabe un "Reporte sin terminar": antes de empezar otro se pregunta qué hacer con el que hay (nunca se pisa sin avisar) -->
+<div id="modalBorr" class="modal oculto">
+  <div role="alertdialog" aria-labelledby="borrTit" aria-describedby="borrTxt borrAyuda">
+    <b id="borrTit">Tienes un reporte sin terminar</b>
+    <div id="borrTxt" class="caja" style="padding:10px 12px;font-size:14px;line-height:1.45;overflow-wrap:anywhere"></div>
+    <span id="borrAyuda" class="suave" style="font-size:13px;line-height:1.45">Solo cabe uno. Si lo descartas, no se guarda nada de ese.</span>
+    <div id="borrError" class="error oculto" role="alert"></div>
+    <button id="borrSeguir" type="button" class="btnPrim" style="height:48px;font-weight:800">Seguir con ese</button>
+    <button id="borrDescartar" type="button" class="btnSec" style="height:48px">Descartarlo y seguir</button>
   </div>
 </div>
 
@@ -545,6 +741,11 @@
 </div>
 
 <div id="toast" class="oculto" role="status" aria-live="polite"></div>
+<!-- Deshacer 5 s: nada se escribe en la hoja hasta que pasen los 5 s (si la app se cierra antes, se escribe de una) -->
+<div id="deshacer" class="oculto" role="status" aria-live="polite">
+  <div class="desFila"><span id="desTxt"></span><button id="desBtn" type="button">Deshacer <b id="desSeg">5</b></button></div>
+  <div class="desBarra" aria-hidden="true"><i id="desProg"></i></div>
+</div>
 
 <script>
 'use strict';
@@ -553,6 +754,8 @@ const PUENTE = 'https://script.google.com/macros/s/AKfycbwvxpKWrOK0PSpzibRVujukZ
 const ZONA = 'America/Bogota';
 const SEG_BLOQUEO = 60;             // en segundo plano más de 60 s → pide el PIN otra vez
 const LLAVE_BORRADOR = 'byuyo.borrador.v1';
+// Reporte en sus 5 s de Deshacer o guardándose: si la app se cierra del todo, al abrirla vuelve como "Reporte sin terminar".
+const LLAVE_PENDIENTE = 'byuyo.pendiente.v1';
 const $ = id => document.getElementById(id);
 const MODO_DEMO = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has('demo');
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -581,8 +784,11 @@ const CAT = {
   cuidado: { t: 'Cuidado personal', u: 'Cuidado personal', c: '#c9b79c', f: '#33302a', d: 'M2 7a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M2 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M7.6 8.5L22 15.2c-.4 1-1.4 1.4-2.4 1l-6.8-3.2M7.6 15.5L22 8.8c-.4-1-1.4-1.4-2.4-1l-6.8 3.2M15 12h.01' },
   cuota: { t: 'Deudas', u: 'Deuda', c: '#b39ddb', f: '#2e2838', d: 'M3 4h18v17H3zM3 9h18M8 2v4M16 2v4M9 15l2 2 4-4' },
   prestamo: { t: 'Préstamos', u: 'Préstamo', c: '#7fb0e8', f: '#232c38', d: 'M12 3v12M7 10l5 5 5-5M4 21h16' },
+  traslado: { t: 'Traslados', u: 'Traslado', c: '#b3b9c4', f: '#282b31', d: 'M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4' },
   ingreso: { t: 'Ingresos', u: 'Ingreso', c: '#7ccf97', f: '#213027', d: 'M3 17l6-6 4 4 8-8M15 7h6v6' },
   reembolso: { t: 'Reembolsos', u: 'Reembolso', c: '#7ccf97', f: '#213027', d: 'M3 17l6-6 4 4 8-8M15 7h6v6' },
+  // Pago del correo que llegó sin categoría (decidido por Juan el 24-nov-2026: no se adivina, se ve gris con "?").
+  sincat: { t: 'Sin categoría', u: 'Sin categoría', c: '#9a979b', f: '#2b2a2d', d: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M9.2 9.2a2.9 2.9 0 0 1 5.6 1c0 1.9-2.8 2.6-2.8 2.6M12 16.8h.01' },
 };
 const ORDEN_CAT = ['hogar', 'moto', 'transporte', 'comida', 'salidas', 'servicios', 'suscr', 'inversion', 'salud', 'cuidado', 'cuota', 'prestamo', 'ingreso'];
 /**
@@ -594,7 +800,7 @@ const TIPOS = ['Vehículo', 'Transporte', 'Servicios', 'Comida', 'Hogar', 'Salud
 const POSITIVOS = ['Ingreso', 'Préstamo', 'Reembolso', 'Saldo inicial'];
 const ICONO_DE = { 'Vehículo': 'moto', 'Transporte': 'transporte', 'Servicios': 'servicios', 'Comida': 'comida', 'Hogar': 'hogar',
   'Salud': 'salud', 'Cuidado personal': 'cuidado', 'Salidas': 'salidas', 'Suscripciones': 'suscr', 'Publicidad': 'inversion',
-  'Deuda': 'cuota', 'Préstamo': 'prestamo', 'Ingreso': 'ingreso', 'Reembolso': 'reembolso', 'Saldo inicial': 'ingreso' };
+  'Deuda': 'cuota', 'Préstamo': 'prestamo', 'Ingreso': 'ingreso', 'Reembolso': 'reembolso', 'Saldo inicial': 'ingreso', 'Traslado': 'traslado' };
 // Subcategorías sugeridas cuando todavía no hay ninguna guardada (la app suma las que ya existen en la hoja).
 const SUBS_BASE = {
   'Ingreso': ['Fijo', 'Extra'], 'Préstamo': ['Familiar', 'Financiera', 'Banco', 'Amigo'], 'Deuda': ['Aplicación', 'Banco', 'Familiar'],
@@ -617,7 +823,9 @@ function sinTildes(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]
 function catDe(r) {
   const t = r.tipo || '';
   if (ICONO_DE[t]) return ICONO_DE[t];
-  // Filas viejas (orden anterior) o sin categoría ("Por revisar"): se adivina el ícono por el texto.
+  // Sin categoría (pago del correo "Por revisar" aún sin completar): no se adivina, sale gris "Sin categoría".
+  if (!t) return 'sincat';
+  // Filas viejas (con una categoría del orden anterior): se adivina el ícono por el texto.
   if (t === 'Préstamo recibido') return 'prestamo';
   if (/^(Ingreso|Reembolso)/.test(t)) return 'ingreso';
   if (t === 'Pauta' || t === 'Inversión') return 'inversion';
@@ -649,6 +857,8 @@ function pesos(n, conSigno) {
 }
 function miles(n) { return Math.abs(Math.round(n || 0)).toLocaleString('es-CO'); }
 function fechaCorta(s) { if (!s) return ''; const [, m, d] = s.split('-').map(Number); return d + ' ' + MESES[m - 1].slice(0, 3); }
+/** "20 nov" si es de este año; "20 nov 2027" si es de otro (para que se note en las tarjetas del chat). */
+function fechaConAnio(s) { if (!s) return ''; return s.slice(0, 4) === hoyTxt().slice(0, 4) ? fechaCorta(s) : fechaLarga(s); }
 function fechaLarga(s) { if (!s) return ''; const [y, m, d] = s.split('-').map(Number); return d + ' ' + MESES[m - 1].slice(0, 3) + ' ' + y; }
 function nombreMes(ym) { const [y, m] = ym.split('-').map(Number); const n = MESES[m - 1]; return n.charAt(0).toUpperCase() + n.slice(1) + ' ' + y; }
 function hora12(h, mi) { const n = Number(h); return ((n % 12) || 12) + ':' + mi + (n < 12 ? ' a. m.' : ' p. m.'); }
@@ -682,12 +892,11 @@ function leerNota(nota) {
   return { texto: n.trim(), lugar, cant, unit, programadoEl, paraEl, antes, confirmadoEl };
 }
 function esProgramado(r) { return !!r && r.estado === 'Programado'; }
-function claseMonto(r) { if (!r.monto) return 'cero'; if (r.tipo === 'Préstamo' || r.tipo === 'Préstamo recibido') return 'prestamo'; return r.monto < 0 ? 'gasto' : 'ingreso'; }
+function claseMonto(r) { if (r.tipo === 'Traslado') return 'traslado'; if (!r.monto) return 'cero'; if (r.tipo === 'Préstamo' || r.tipo === 'Préstamo recibido') return 'prestamo'; return r.monto < 0 ? 'gasto' : 'ingreso'; }
 function registradoPor(o) {
   const s = sinTildes(o);
   if (!s) return '—';
   if (s === 'app') return 'Juan (app)';
-  if (s === 'siri') return 'Juan (Siri)';
   if (/nequi|correo/.test(s)) return 'Correo de Nequi';
   if (/migraci/.test(s)) return 'Migración de la hoja';
   return o;
@@ -720,13 +929,42 @@ function toast(msg, mal) {
   const t = $('toast'); t.textContent = msg; t.classList.toggle('mal', !!mal); t.classList.remove('oculto');
   clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.add('oculto'), 4200);
 }
+/**
+ * Deshacer 5 s: muestra "Guardando X · Deshacer 5" y espera. Devuelve true si hay que escribir (pasaron los 5 s, o la
+ * app se fue a segundo plano, o empezó otra escritura) y false si Juan tocó Deshacer (no se escribió nada en la hoja).
+ */
+const SEG_DESHACER = 5;
+function esperarDeshacer(texto) {
+  if (estado.deshacer) estado.deshacer.fin(true); // la anterior se escribe ya
+  return new Promise(ok => {
+    const d = { hasta: Date.now() + SEG_DESHACER * 1000 };
+    d.fin = r => {
+      if (estado.deshacer !== d) return;
+      estado.deshacer = null; clearInterval(d.t);
+      $('deshacer').classList.add('oculto');
+      ok(r);
+    };
+    estado.deshacer = d;
+    $('toast').classList.add('oculto');
+    $('desTxt').textContent = texto.replace(/\$ /g, '$ '); $('desSeg').textContent = SEG_DESHACER; // el valor no se parte
+    const p = $('desProg'); p.classList.remove('corre'); void p.offsetWidth; p.classList.add('corre');
+    $('deshacer').classList.remove('oculto');
+    d.t = setInterval(() => { const s = Math.ceil((d.hasta - Date.now()) / 1000); if (s <= 0) d.fin(true); else $('desSeg').textContent = s; }, 200);
+  });
+}
 function uuid() { return crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(); }
 function guardarLocal(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sin almacenamiento */ } }
 function leerLocal(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
 
 /* ---------------------------- puente ---------------------------- */
-async function api(accion, datos) {
-  const req = Object.assign({ accion, pin: estado.pin }, datos || {});
+const LLAVE_DISP = 'byuyo.disp.v1';
+const ESCRITURAS = ['registrar', 'registrarLista', 'editar', 'revisar', 'borrar', 'programar', 'traslado'];
+async function api(accion, datos, op) {
+  // disp = llave de este celular (la da el puente al acertar el PIN): así un desconocido con la URL no puede bloquear este celular.
+  const req = Object.assign({ accion, pin: estado.pin, disp: leerLocal(LLAVE_DISP) || '' }, datos || {});
+  // Una sola llamada: al escribir se pide de una vez el Inicio actualizado del periodo que se está viendo.
+  const per = estado.periodo;
+  if (ESCRITURAS.includes(accion) && per) req.inicio = { desde: per.desde, hasta: per.hasta };
   let j;
   if (MODO_DEMO) {
     j = await window.BYUYO_DEMO.atender(JSON.parse(JSON.stringify(req)));
@@ -743,16 +981,137 @@ async function api(accion, datos) {
     } finally { clearTimeout(t); }
     try { j = await r.json(); } catch (e) { throw new Error('Respuesta rara del puente. Intenta otra vez.'); }
   }
+  if (j.disp) guardarLocal(LLAVE_DISP, j.disp); // celular nuevo o datos borrados: llave nueva
   if (!j.ok) {
-    if (j.codigo === 'PIN_MAL' || j.codigo === 'BLOQUEADO' || j.codigo === 'SIN_PIN') bloquear(j.error, j.codigo);
+    // op.noBloquear: verificación de Extractos; un PIN mal ahí se cuenta en el puente pero no cierra la app.
+    const suave = op && op.noBloquear && j.codigo === 'PIN_MAL';
+    if (!suave && (j.codigo === 'PIN_MAL' || j.codigo === 'BLOQUEADO' || j.codigo === 'SIN_PIN')) bloquear(j.error, j.codigo);
     if (j.codigo === 'ACCION') j.error = 'El puente de la hoja está desactualizado: falta publicar su nueva versión.';
     const err = new Error(j.error || 'Error'); err.codigo = j.codigo; throw err;
   }
+  if (j.inicio && j.inicio.ok) estado.inicioListo = Object.assign(j.inicio, { en: Date.now() }); // cargar() lo usa sin volver a llamar
   return j;
+}
+
+/* ---------- Inicio guardado en el celular, cifrado con el PIN (abre al instante; el puente sigue validando el PIN) ---------- */
+const LLAVE_INICIO = 'byuyo.inicio.v1';
+const b64 = u => btoa(String.fromCharCode(...new Uint8Array(u)));
+const deB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function llaveDePin(pin, sal) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: sal, iterations: 150000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function guardarInicioLocal(datos) {
+  try {
+    if (!estado.pin || !crypto.subtle) return;
+    if (!estado.llave) { estado.sal = crypto.getRandomValues(new Uint8Array(16)); estado.llave = await llaveDePin(estado.pin, estado.sal); }
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const cif = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, estado.llave, new TextEncoder().encode(JSON.stringify(datos)));
+    guardarLocal(LLAVE_INICIO, { sal: b64(estado.sal), iv: b64(iv), datos: b64(cif) });
+  } catch (e) { /* sin almacenamiento o sin cifrado: abre como antes */ }
+}
+/** Con el PIN escrito intenta abrir lo guardado. Si el PIN no es el de ese guardado, no se puede leer (null). */
+async function leerInicioLocal(pin) {
+  try {
+    const g = leerLocal(LLAVE_INICIO); if (!g || !crypto.subtle) return null;
+    const sal = deB64(g.sal), llave = await llaveDePin(pin, sal);
+    const txt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: deB64(g.iv) }, llave, deB64(g.datos));
+    estado.sal = sal; estado.llave = llave;
+    return JSON.parse(new TextDecoder().decode(txt));
+  } catch (e) { return null; }
+}
+
+/* ---------- Face ID (passkey) ----------
+ * Activar: tocar la cara → el iPhone crea una passkey de Byuyo (Face ID) → escribir el PIN una vez → con el secreto
+ * que da la passkey (extensión PRF; iOS 18 o más nuevo) se cifra el PIN y se guarda en el celular.
+ * Entrar: tocar la cara → Face ID → la passkey da el mismo secreto → se descifra el PIN → entra como con el teclado.
+ * Sin la cara no se puede descifrar. El puente no cambia: sigue validando el PIN (intentos, celulares de confianza). */
+const LLAVE_CARA = 'byuyo.cara.v1';
+const SAL_PRF = new TextEncoder().encode('byuyo-faceid-v1');
+const azar = n => crypto.getRandomValues(new Uint8Array(n));
+function caraActiva() { const c = leerLocal(LLAVE_CARA); return !!(c && c.pin); }
+function pintarCara() {
+  const activa = caraActiva();
+  $('pieCara').textContent = activa ? 'Toca la cara para entrar con Face ID' : 'Toca la cara para activar Face ID';
+  $('btnCara').setAttribute('aria-label', activa ? 'Entrar con Face ID' : 'Activar Face ID');
+}
+function caraNoSirve() {
+  return !(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create && crypto.subtle);
+}
+const SIN_PRF = 'Tu iPhone no permite Face ID en Byuyo (necesita iOS 18 o más nuevo). Sigue con tu PIN.';
+async function llaveDeCara(secreto) {
+  return crypto.subtle.importKey('raw', new Uint8Array(secreto).slice(0, 32), 'AES-GCM', false, ['encrypt', 'decrypt']);
+}
+/** Face ID con la passkey ya creada: devuelve el secreto PRF (o lanza error). */
+async function secretoDeCara(idB64) {
+  const a = await navigator.credentials.get({ publicKey: {
+    challenge: azar(32), allowCredentials: [{ type: 'public-key', id: deB64(idB64) }],
+    userVerification: 'required', timeout: 60000, extensions: { prf: { eval: { first: SAL_PRF } } } } });
+  const r = a.getClientExtensionResults();
+  if (!r.prf || !r.prf.results || !r.prf.results.first) throw new Error(SIN_PRF);
+  return r.prf.results.first;
+}
+/** Paso 1 (con el toque): crear la passkey. Si el aparato ya da el secreto, se guarda en memoria para el paso 2. */
+async function crearPasskey() {
+  const cred = await navigator.credentials.create({ publicKey: {
+    challenge: azar(32), rp: { name: 'Byuyo' },
+    user: { id: azar(16), name: 'Juan', displayName: 'Juan · Byuyo' },
+    pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+    authenticatorSelection: { authenticatorAttachment: 'platform', residentKey: 'required', userVerification: 'required' },
+    timeout: 60000, extensions: { prf: { eval: { first: SAL_PRF } } } } });
+  const ext = cred.getClientExtensionResults();
+  if (!ext.prf || (!ext.prf.enabled && !(ext.prf.results && ext.prf.results.first))) throw new Error(SIN_PRF);
+  estado.caraNueva = { id: b64(cred.rawId), secreto: ext.prf.results && ext.prf.results.first };
+}
+/** Paso 2 (tras el PIN bueno): cifrar el PIN con el secreto de la passkey y guardarlo. */
+async function terminarCara(pin) {
+  const n = estado.caraNueva; estado.caraNueva = null;
+  try {
+    const secreto = n.secreto || await secretoDeCara(n.id);
+    const iv = azar(12);
+    const cif = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await llaveDeCara(secreto), new TextEncoder().encode(pin));
+    guardarLocal(LLAVE_CARA, { id: n.id, iv: b64(iv), pin: b64(cif) });
+    toast('Face ID activado. La próxima vez toca la cara para entrar.');
+  } catch (e) {
+    toast(e.message === SIN_PRF ? SIN_PRF : 'No se activó Face ID. Toca la cara otra vez cuando quieras.', true);
+  }
+  pintarCara();
+}
+/** Face ID → el PIN guardado (descifrado con el secreto de la passkey). */
+async function pinDeCara() {
+  const c = leerLocal(LLAVE_CARA);
+  if (!c || !c.pin) throw new Error('Face ID no está activado.');
+  const secreto = await secretoDeCara(c.id);
+  const pin = new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: deB64(c.iv) }, await llaveDeCara(secreto), deB64(c.pin)));
+  if (!/^\d{4}$/.test(pin)) throw new Error('PIN raro');
+  return pin;
+}
+async function tocarCara() {
+  if (estado.verificando) return;
+  if (caraNoSirve()) { ponerError('Este navegador no tiene Face ID. Sigue con tu PIN.', true); return; }
+  if (estado.creando) { ponerError('Primero crea tu PIN; después activas Face ID.', true); return; }
+  const c = leerLocal(LLAVE_CARA);
+  if (!c || !c.pin) { // activar
+    try {
+      await crearPasskey();
+      estado.teclas = ''; pintarPuntos();
+      $('pinTitulo').textContent = 'Escribe tu PIN para terminar';
+      ponerError('Face ID listo: falta tu PIN una vez.', true);
+    } catch (e) { estado.caraNueva = null; ponerError(e.message === SIN_PRF ? SIN_PRF : 'No se activó Face ID. Usa tu PIN.', true); }
+    return;
+  }
+  try { // entrar
+    const pin = await pinDeCara();
+    estado.porCara = true; estado.teclas = pin; pintarPuntos();
+    pinCompleto();
+  } catch (e) {
+    ponerError(e.message === SIN_PRF ? SIN_PRF : 'No se pudo con Face ID. Escribe tu PIN.', true);
+  }
 }
 
 /* ============================ 1 · PIN con teclado propio ============================ */
 async function arrancar() {
+  recuperarPendiente();
   ponerError('Conectando…', true);
   try {
     const r = await api('estado');
@@ -764,7 +1123,7 @@ function ponerError(msg, suave) { const e = $('pinError'); e.textContent = msg |
 function modoPin(creando) {
   estado.creando = creando; estado.pinPrimero = ''; estado.teclas = '';
   $('pinTitulo').textContent = creando ? 'Crea tu PIN de 4 dígitos' : 'Escribe tu PIN';
-  pintarPuntos();
+  pintarPuntos(); pintarCara();
 }
 function pintarPuntos() {
   const n = estado.teclas.length;
@@ -773,7 +1132,8 @@ function pintarPuntos() {
 }
 function tecla(k) {
   if (estado.verificando) return;
-  if (k === 'cara') { ponerError('Face ID llega en la etapa 3. Por ahora, tu PIN.', true); return; }
+  if (k === 'cara') { tocarCara(); return; }
+  estado.porCara = false;
   if (k === 'borrar') { estado.teclas = estado.teclas.slice(0, -1); pintarPuntos(); return; }
   if (!/^\d$/.test(k) || estado.teclas.length >= 4) return;
   if (estado.teclas.length === 0) ponerError('');
@@ -794,10 +1154,23 @@ async function pinCompleto() {
   if (estado.creando && pin !== estado.pinPrimero) { estado.pinPrimero = ''; $('pinTitulo').textContent = 'Crea tu PIN de 4 dígitos'; pinMal('Los dos PIN no son iguales. Empieza otra vez.'); return; }
   estado.verificando = true; $('puntos').classList.add('espera');
   try {
-    if (estado.creando) { await api('crearPin', { pinNuevo: pin }); estado.creando = false; }
+    if (estado.creando) { await api('crearPin', { pinNuevo: pin }); estado.creando = false; guardarLocal(LLAVE_CARA, null); } // PIN nuevo: Face ID se vuelve a activar
     estado.pin = pin;
+    estado.frescos = null;
+    // Al instante: lo último guardado en el celular (solo se puede leer con este PIN) y se actualiza por detrás.
+    const guardado = await leerInicioLocal(pin);
+    if (guardado && String(guardado.desde || '').slice(0, 7) === hoyTxt().slice(0, 7)) {
+      estado.periodo = periodoRapido('mes');
+      estado.datos = guardado; pintarSinCompletar(); pintarResumen(); pintarReportes();
+      estado.teclas = ''; pintarPuntos(); ponerError('');
+      estado.frescos = cargar().catch(e => { if (!['PIN_MAL', 'BLOQUEADO', 'SIN_PIN'].includes(e.codigo)) toast('No pude actualizar (' + e.message + '). Ves lo último guardado.', true); });
+      if (estado.caraNueva) await terminarCara(pin);
+      entrarApp();
+      return;
+    }
     await cargar();
     estado.teclas = ''; pintarPuntos(); ponerError('');
+    if (estado.caraNueva) await terminarCara(pin);
     entrarApp();
   } catch (e) {
     estado.pin = '';
@@ -808,22 +1181,31 @@ async function pinCompleto() {
 function entrarApp() {
   $('vBloqueo').classList.add('oculto');
   mostrarVista('inicio', true);
-  const t = new URLSearchParams(location.search).get('t'); // texto que manda Siri
-  if (t) { $('frase').value = t.slice(0, 300); history.replaceState(null, '', location.pathname + (MODO_DEMO ? '?demo' : '')); revisar(); }
+  const q = new URLSearchParams(location.search);
+  const rv = (q.get('revisar') || '').toUpperCase(); // enlace del aviso por correo: ?revisar=M0xxx
+  if (rv) history.replaceState(null, '', location.pathname + (MODO_DEMO ? '?demo' : ''));
+  if (/^M\d{3,6}$/.test(rv)) Promise.resolve(estado.frescos).then(() => { if (estado.pin) revisarDelCorreo(rv); }); // con datos frescos (el pago puede ser nuevo)
 }
 function bloquear(msg, codigo) {
+  if (estado.verif) cerrarVerif(false);
+  estado.extracto = null; estado.cargaX = null; // el PDF armado no queda en memoria con la app bloqueada
   guardarBorradorSiHay();
   cerrarVentana(true);
+  // Ninguna ventanita queda encima del bloqueo (mostrarían datos sin PIN); la del PIN ya se cerró arriba.
+  document.querySelectorAll('.modal').forEach(m => m.classList.add('oculto')); estado.trasBorrador = null; estado.trasGuardado = null;
   estado.pin = '';
   document.querySelectorAll('.vista').forEach(v => v.classList.add('oculto'));
   $('barra').classList.add('oculto');
   $('vBloqueo').classList.remove('oculto');
+  // PIN guardado para Face ID ya no sirve (se cambió con borrarPin): se apaga y se vuelve a activar con un toque.
+  if (estado.porCara && (codigo === 'PIN_MAL' || codigo === 'SIN_PIN')) { guardarLocal(LLAVE_CARA, null); msg = 'Tu PIN cambió. Escríbelo y toca la cara para activar Face ID otra vez.'; }
+  estado.porCara = false;
   modoPin(codigo === 'SIN_PIN');
   if (codigo === 'PIN_MAL') pinMal(msg); else ponerError(msg || '');
 }
 
 /* ============================ Navegación entre pantallas ============================ */
-const VISTAS = { inicio: 'vInicio', revisar: 'vRevisar', lista: 'vLista', listado: 'vListado', detalles: 'vDetalles' };
+const VISTAS = { inicio: 'vInicio', revisar: 'vRevisar', lista: 'vLista', listado: 'vListado', detalles: 'vDetalles', graficas: 'vGraficas', extractos: 'vExtractos' };
 function mostrarVista(v, sinHistoria) {
   const antes = estado.vista;
   if (antes === 'inicio' && v !== 'inicio') estado.scrollInicio = window.scrollY;
@@ -839,6 +1221,11 @@ function mostrarVista(v, sinHistoria) {
 function abrir(v) { mostrarVista(v); }
 /** "‹" y el gesto atrás: de 3c/3d vuelve a donde venía; de 3 o 3b guarda el borrador. */
 function volver() {
+  if (estado.chatTarjeta) { // venía de una tarjeta del chat: se regresa al chat sin crear otro borrador
+    estado.rev = null; estado.lista = null;
+    if (history.state && history.state.v) history.back(); else { mostrarVista('inicio', true); volverAlChatSiVenia(); }
+    return;
+  }
   if ((estado.vista === 'revisar' && estado.rev) || (estado.vista === 'lista' && estado.lista)) { guardarBorradorSiHay(); toast('Quedó como "Reporte sin terminar".'); }
   if (history.state && history.state.v) history.back(); else mostrarVista('inicio', true);
 }
@@ -846,9 +1233,12 @@ window.addEventListener('popstate', () => {
   if (estado.ventana) cerrarVentana(true);
   if (!$('modalBorrar').classList.contains('oculto')) $('modalBorrar').classList.add('oculto');
   $('modalProg').classList.add('oculto');
+  cerrarModalBorr();
   const v = history.state && history.state.v;
+  if (estado.chatTarjeta && v !== 'revisar' && v !== 'lista') { estado.rev = null; estado.lista = null; }
   guardarBorradorSiHay();
   if (estado.pin) mostrarVista(v && VISTAS[v] ? v : 'inicio', true);
+  if (estado.chatTarjeta && v !== 'revisar' && v !== 'lista') volverAlChatSiVenia();
 });
 
 /* ============================ 2 · Inicio ============================ */
@@ -868,22 +1258,35 @@ function etiquetaPeriodo(p) {
 }
 async function cargar() {
   if (!estado.periodo) estado.periodo = periodoRapido('mes');
+  const p = estado.periodo, listo = estado.inicioListo;
+  estado.inicioListo = null;
+  // Si el último registro ya trajo el Inicio de este periodo, se usa sin volver a llamar al puente.
+  if (listo && listo.desde === p.desde && listo.hasta === p.hasta && Date.now() - listo.en < 30000) return aplicarInicio(listo);
   $('lista').classList.add('cargando');
   try {
-    const r = await api('inicio', { desde: estado.periodo.desde, hasta: estado.periodo.hasta });
-    estado.datos = r;
-    if (!(r.programados || []).length) estado.prog = false;
-    pintarSinCompletar();
-    pintarResumen();
-    pintarReportes();
+    aplicarInicio(await api('inicio', { desde: p.desde, hasta: p.hasta }));
   } finally { $('lista').classList.remove('cargando'); }
+}
+function aplicarInicio(r) {
+  estado.datos = r;
+  if (!(r.programados || []).length) estado.prog = false;
+  pintarSinCompletar();
+  pintarResumen();
+  pintarReportes();
+  if (estado.periodo.boton === 'mes') guardarInicioLocal(r); // lo que se ve al abrir: este mes
 }
 function pintarResumen() {
   const r = estado.datos; if (!r) return;
   const s = r.resumen;
-  $('total').textContent = pesos(s.total != null ? s.total : s.saldoReal);
-  $('nequi').textContent = pesos(s.nequi);
-  $('efectivo').textContent = pesos(s.efectivo);
+  // Con lo del correo sin completar (la plata ya se movió en Nequi); la línea de abajo dice cuántos van incluidos.
+  const sn = correoSinCompletar(r, 'Nequi'), se = correoSinCompletar(r, 'Efectivo');
+  const base = s.total != null ? s.total : s.saldoReal;
+  $('total').textContent = pesos(base == null ? null : base + sn + se);
+  $('nequi').textContent = pesos(s.nequi == null ? null : s.nequi + sn);
+  $('efectivo').textContent = pesos(s.efectivo == null ? null : s.efectivo + se);
+  const nc = new Set(filasCorreoSinCompletar(r).map(x => x.grupo || x.id)).size; // un traslado (2 filas) cuenta como 1
+  $('totalNota').classList.toggle('oculto', !nc);
+  $('totalNota').textContent = nc ? 'Incluye ' + nc + (nc === 1 ? ' movimiento' : ' movimientos') + ' del correo sin completar' : '';
   const mes = (r.hoy || hoyTxt()).slice(0, 7);
   const fin = s.cierres ? s.cierres[mes] : null;
   $('sobra').classList.toggle('oculto', fin == null);
@@ -901,12 +1304,23 @@ function agrupar(lista) {
   const hechos = new Set(), out = [];
   lista.forEach(r => {
     const g = r.grupo && porGrupo[r.grupo];
-    if (!g || g.length < 6) { out.push(r); return; }
+    const traslado = g && g.length === 2 && g.every(x => x.tipo === 'Traslado');
+    if (!g || (g.length < 6 && !traslado)) { out.push(r); return; }
     if (hechos.has(r.grupo)) return;
     hechos.add(r.grupo);
-    out.push(compraDe(g));
+    out.push(traslado ? trasladoDe(g) : compraDe(g));
   });
   return out;
+}
+/** Las 2 filas de un traslado (− en un medio, + en el otro) se ven como UNA tarjeta ⇄. monto 0: no suma ni resta en los totales. */
+function trasladoDe(filas) {
+  const sale = filas.find(x => x.monto < 0) || filas[0], entra = filas.find(x => x !== sale) || filas[1];
+  return {
+    esTraslado: true, id: 'T:' + sale.grupo, grupo: sale.grupo, items: [sale, entra], fecha: sale.fecha, creado: sale.creado, origen: sale.origen,
+    concepto: sale.concepto || 'Traslado', monto: 0, valor: Math.abs(sale.monto), tipo: 'Traslado', sub: sale.sub,
+    medio: (sale.medio || '?') + ' → ' + (entra.medio || '?'), estado: filas.every(x => x.estado === sale.estado) ? sale.estado : 'Varios',
+    nota: sale.nota, ref: sale.ref, tienda: '',
+  };
 }
 function compraDe(filas) {
   filas = filas.slice().sort((a, b) => a.id.localeCompare(b.id)); // en el orden en que se dictaron
@@ -945,11 +1359,18 @@ function pintarReportes() {
   if (filtrando && vis.length) {
     const g = vis.reduce((s, r) => s + (r.monto < 0 ? r.monto : 0), 0), i = vis.reduce((s, r) => s + (r.monto > 0 ? r.monto : 0), 0);
     const n = vis.reduce((s, r) => s + (r.esCompra ? r.items.length : 1), 0);
-    T.replaceChildren(el('span', { text: n + (n === 1 ? ' reporte' : ' reportes') + ' · ' + etiquetaPeriodo(estado.periodo) }),
+    T.replaceChildren(el('span', { text: n + (n === 1 ? ' reporte' : ' reportes') + ' · ' + (estado.prog ? 'Programados' : etiquetaPeriodo(estado.periodo)) }),
       el('span', {}, g ? el('b', { text: 'Gastos ' + pesos(g) }) : null, g && i ? ' · ' : '', i ? el('b', { text: 'Entradas ' + pesos(i, true) }) : null));
   }
   if (!vis.length) {
-    L.append(el('div', { class: 'vacio', text: estado.prog ? 'No hay programados con estos filtros' : (filtrando ? 'No hay reportes con estos filtros' + (estado.texto ? ' ("' + estado.texto + '")' : '') : 'No hay reportes en estas fechas') }));
+    const V = el('div', { class: 'vacio', text: estado.prog ? 'No hay programados con estos filtros' : (filtrando ? 'No hay reportes con estos filtros' + (estado.texto ? ' ("' + estado.texto + '")' : '') : 'No hay reportes en estas fechas') });
+    // Lo buscado no está en estas fechas pero sí en Programados: se dice y se puede ir allá con un toque.
+    if (!estado.prog && filtrando) {
+      const enProg = agrupar(estado.datos.programados || []).filter(r => porCat(r) && porSub(r) && coincideTexto(r, estado.texto)).length;
+      if (enProg) V.append(el('div', { style: 'margin-top:10px' }, (enProg === 1 ? 'Hay 1 en Programados. ' : 'Hay ' + enProg + ' en Programados. '),
+        el('button', { type: 'button', class: 'chip', text: 'Ver en Programados', onclick: () => { estado.prog = true; pintarReportes(); } })));
+    }
+    L.append(V);
     return;
   }
   const caja = el('div', { style: 'display:flex;flex-direction:column;gap:10px' });
@@ -969,9 +1390,9 @@ function tarjeta(r, prog) {
     el('div', { class: 'medio' },
       prog ? el('span', { class: 'etqProg', text: 'Programado' }) : null,
       el('span', { class: 'con', text: r.concepto || '(sin concepto)' }),
-      el('span', { class: 'sub', text: etiquetaCat(r, k) + ' · ' + fechaCorta(r.fecha) + (!prog && r.estado === 'Por revisar' ? ' · por revisar' : '') })),
+      el('span', { class: 'sub', text: (r.esTraslado ? 'Traslado · ' + r.medio : etiquetaCat(r, k)) + ' · ' + fechaCorta(r.fecha) + (!prog && r.estado === 'Por revisar' ? ' · por revisar' : '') })),
     el('div', { class: 'der' },
-      el('span', { class: 'val ' + claseMonto(r), text: pesos(r.monto) }),
+      el('span', { class: 'val ' + claseMonto(r), text: pesos(r.esTraslado ? r.valor : r.monto) }),
       el('button', { type: 'button', class: 'verDet', 'aria-expanded': String(ab), text: ab ? 'Ocultar ‹' : 'Ver detalles ›',
         onclick: () => { ab ? estado.abiertos.delete(r.id) : estado.abiertos.add(r.id); pintarReportes(); } })));
   const t = el('div', { class: 'rep' + (prog ? ' prog' : '') }, cab);
@@ -1111,7 +1532,7 @@ async function aplicarFiltros() {
   if (cambio) { try { await cargar(); } catch (e) { toast(e.message, true); } } else pintarReportes();
 }
 function abrirFechas() {
-  const f = estado.selFechas || { desde: estado.periodo.desde, hasta: estado.periodo.hasta };
+  const f = (estado.vista === 'graficas' && estado.periodoG) || (estado.vista === 'extractos' && estado.periodoX) || estado.selFechas || { desde: estado.periodo.desde, hasta: estado.periodo.hasta };
   $('desde').value = f.desde; $('hasta').value = f.hasta; $('desde').max = $('hasta').max = hoyTxt();
   $('fechasError').textContent = '';
   $('modalFechas').classList.remove('oculto');
@@ -1121,9 +1542,134 @@ function aplicarFechas() {
   if (!d || !h) { $('fechasError').textContent = 'Elige las dos fechas.'; return; }
   if (h < d) { const x = d; d = h; h = x; }
   if (d < mover(h, 1, -6)) { $('fechasError').textContent = 'Máximo 6 meses a la vez.'; return; }
-  estado.selFechas = { desde: d, hasta: h }; estado.selPer = 'fechas';
   $('modalFechas').classList.add('oculto');
+  if (estado.vista === 'graficas') { estado.periodoG = { desde: d, hasta: h, boton: 'fechas' }; cargarGraficas(); return; }
+  if (estado.vista === 'extractos') { estado.periodoX = { desde: d, hasta: h, boton: 'fechas' }; estado.extracto = null; pintarExtractos(); return; }
+  estado.selFechas = { desde: d, hasta: h }; estado.selPer = 'fechas';
   pintarPanel(); // vuelve a la ventana de filtros
+}
+
+/* ============================ 4 · Gráficas ============================
+ * Igual que la pestaña "Gráficas" de la hoja: solo lo real (Confirmado/Pagado; la lista también trae "Por revisar"),
+ * sin Traslado ni Saldo inicial, sin $0. Clase: Ingresos (Ingreso no Extra), Préstamos, Bonos (Ingreso › Extra),
+ * Salidas (gasto real menos reembolsos). Grupo: gasto por categoría; el Reembolso se resta de su categoría (Subcategoría).
+ * Orden fijo de la dona 1 (Ingresos, Préstamos, Bonos, Salidas): validado para daltonismo sobre la caja oscura. */
+const CLASES_G = [['ing', 'Ingresos', '#5fbf7f'], ['pres', 'Préstamos', '#7fb0e8'], ['bono', 'Bonos (ingreso extra)', '#e3b341'], ['sal', 'Salidas', '#e0675f']];
+function calcularGraficas(lista) {
+  const cl = {}; CLASES_G.forEach(([k]) => { cl[k] = { m: 0, n: 0 }; });
+  const gr = {};
+  const grupo = g => (gr[g] = gr[g] || { m: 0, n: 0 });
+  const tipoDe = s => TIPOS.find(t => sinTildes(t) === sinTildes(s)) || '';
+  (lista || []).forEach(r => {
+    const t = r.tipo || '', m = Math.round(Number(r.monto) || 0);
+    if (r.estado !== 'Confirmado' && r.estado !== 'Pagado') return; // "Por revisar" no cuenta hasta confirmarlo
+    if (!m || t === 'Traslado' || t === 'Saldo inicial') return;
+    if (t === 'Ingreso') { const c = /extra/.test(sinTildes(r.sub)) ? cl.bono : cl.ing; c.m += m; c.n++; return; }
+    if (/^Préstamo/.test(t)) { cl.pres.m += m; cl.pres.n++; return; }
+    if (t === 'Reembolso') { const g = tipoDe(r.sub); grupo(g && !POSITIVOS.includes(g) ? g : 'Otros').m -= m; return; }
+    if (m < 0) { const g = TIPOS.includes(t) && !POSITIVOS.includes(t) ? t : 'Otros'; const x = grupo(g); x.m += -m; x.n++; cl.sal.n++; }
+  });
+  const grupos = Object.keys(gr).map(g => ({ g, m: Math.max(0, gr[g].m), n: gr[g].n })).filter(x => x.m > 0).sort((a, b) => b.m - a.m);
+  cl.sal.m = grupos.reduce((s, x) => s + x.m, 0);
+  const clases = CLASES_G.map(([k, nombre, color]) => ({ k, nombre, color, m: Math.max(0, cl[k].m), n: cl[k].n })).filter(x => x.m > 0);
+  return { clases, grupos, gastado: cl.sal.m, entro: cl.ing.m + cl.pres.m + cl.bono.m };
+}
+function abrirGraficas() {
+  if (!estado.periodoG) estado.periodoG = Object.assign({}, estado.periodo || periodoRapido('mes'));
+  mostrarVista('graficas');
+  cargarGraficas();
+}
+async function cargarGraficas() {
+  const p = estado.periodoG;
+  pintarPeriodosG();
+  $('gRango').textContent = 'Cargando…';
+  let lista;
+  const d = estado.datos;
+  const cajas = document.querySelectorAll('#vGraficas .gCaja');
+  if (d && d.desde === p.desde && d.hasta === p.hasta) lista = d.lista; // el mismo periodo del Inicio: sin llamar al puente
+  else {
+    // Mientras llega el periodo nuevo, las donas del anterior se ven apagadas (para no confundirlas con las nuevas).
+    cajas.forEach(c => c.classList.add('cargando'));
+    try { lista = (await api('inicio', { desde: p.desde, hasta: p.hasta })).lista; }
+    catch (e) {
+      if (estado.periodoG === p) { $('gRango').textContent = ''; cajas.forEach(c => c.classList.remove('cargando')); }
+      if (!['PIN_MAL', 'BLOQUEADO', 'SIN_PIN'].includes(e.codigo)) toast(e.message, true);
+      return;
+    }
+    if (estado.periodoG !== p) return; // cambió de periodo mientras cargaba
+  }
+  cajas.forEach(c => c.classList.remove('cargando'));
+  $('gRango').textContent = fechaLarga(p.desde) + ' – ' + fechaLarga(p.hasta);
+  const g = calcularGraficas(lista);
+  const pct = (m, total) => { const x = total ? m / total * 100 : 0; return x > 0 && x < 1 ? '<1 %' : Math.round(x) + ' %'; };
+  const totalClases = g.clases.reduce((s, x) => s + x.m, 0);
+  const quedo = g.entro - g.gastado;
+  pintarDona('gDona1', 'gLey1', g.clases.map(x => ({
+    nombre: x.nombre, color: x.color, m: x.m, pct: pct(x.m, totalClases),
+    sub: x.n + (x.n === 1 ? ' movimiento' : ' movimientos'),
+  })), { arriba: quedo >= 0 ? 'Quedó' : 'Faltó', valor: pesos(Math.abs(quedo)), vacio: 'No hubo movimientos reales en este periodo.' });
+  pintarDona('gDona2', 'gLey2', g.grupos.map(x => {
+    const c = CAT[ICONO_DE[x.g]];
+    return { nombre: c ? c.t : 'Otros', color: c ? c.c : '#8d8a8c', icono: c ? ICONO_DE[x.g] : null, m: x.m, pct: pct(x.m, g.gastado),
+      sub: x.n + (x.n === 1 ? ' gasto' : ' gastos') };
+  }), { arriba: 'Gastado', valor: pesos(g.gastado), vacio: 'No hubo gastos reales en este periodo.' });
+}
+function pintarPeriodosG() {
+  const p = estado.periodoG, cont = $('gPeriodos');
+  cont.replaceChildren(...PERIODOS.map(([k, t]) => {
+    const sel = p.boton === k;
+    const txt = k === 'fechas' && sel ? fechaCorta(p.desde) + ' – ' + fechaCorta(p.hasta) : t;
+    return el('button', { type: 'button', class: 'chip' + (sel ? ' sel' : ''), 'aria-pressed': String(sel),
+      onclick: () => { if (k === 'fechas') { abrirFechas(); return; } estado.periodoG = periodoRapido(k); cargarGraficas(); } }, txt);
+  }));
+}
+/** Arco de anillo (dona) de a0 a a1 en radianes; 0 = arriba. */
+function arcoDona(a0, a1, R, r) {
+  const pt = (rad, a) => (100 + rad * Math.sin(a)).toFixed(2) + ' ' + (100 - rad * Math.cos(a)).toFixed(2);
+  const big = a1 - a0 > Math.PI ? 1 : 0;
+  return 'M' + pt(R, a0) + 'A' + R + ' ' + R + ' 0 ' + big + ' 1 ' + pt(R, a1) + 'L' + pt(r, a1) + 'A' + r + ' ' + r + ' 0 ' + big + ' 0 ' + pt(r, a0) + 'Z';
+}
+function pintarDona(idDona, idLey, partes, centro) {
+  const dona = $(idDona), ley = $(idLey);
+  dona.classList.remove('foco');
+  if (!partes.length) { dona.style.display = 'none'; ley.replaceChildren(el('p', { class: 'gVacio' }, centro.vacio)); return; }
+  dona.style.display = '';
+  const NS = 'http://www.w3.org/2000/svg', R = 98, r = 74;
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 200 200'); svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', partes.map(x => x.nombre + ' ' + x.pct).join(', '));
+  const total = partes.reduce((s, x) => s + x.m, 0);
+  const cen = el('div', { class: 'gCentro', 'aria-live': 'polite' });
+  const ponerCentro = x => cen.replaceChildren(el('small', {}, x ? x.nombre : centro.arriba), el('b', {}, x ? pesos(x.m) : centro.valor), ...(x ? [el('small', {}, x.pct)] : []));
+  let fijo = -1;
+  const filas = [], trazos = [];
+  const enfocar = i => {
+    dona.classList.toggle('foco', i >= 0);
+    trazos.forEach((t, j) => t.classList.toggle('on', j === i));
+    filas.forEach((f, j) => { f.classList.toggle('on', j === i); f.setAttribute('aria-pressed', String(j === i)); });
+    ponerCentro(i >= 0 ? partes[i] : null);
+  };
+  const tocar = i => { fijo = fijo === i ? -1 : i; enfocar(fijo); };
+  let a = 0;
+  partes.forEach((x, i) => {
+    const b = a + x.m / total * Math.PI * 2;
+    const t = document.createElementNS(NS, 'path');
+    // una sola parte = anillo completo (dos mitades)
+    t.setAttribute('d', partes.length === 1 ? arcoDona(0, Math.PI, R, r) + arcoDona(Math.PI, Math.PI * 2 - 1e-4, R, r) : arcoDona(a, b, R, r));
+    t.setAttribute('fill', x.color);
+    t.addEventListener('click', () => tocar(i));
+    t.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && fijo < 0) enfocar(i); });
+    t.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && fijo < 0) enfocar(-1); });
+    svg.appendChild(t); trazos.push(t);
+    a = b;
+    filas.push(el('button', { type: 'button', class: 'gFila', 'aria-pressed': 'false', onclick: () => tocar(i) },
+      x.icono ? icono(x.icono, 34, 18, 10) : el('span', { class: 'gPunto', style: 'background:' + x.color }),
+      el('span', { class: 'gNombre' }, x.nombre, el('small', {}, x.sub)),
+      el('span', { class: 'gMonto' }, pesos(x.m), el('small', {}, x.pct))));
+  });
+  ponerCentro(null);
+  dona.replaceChildren(svg, cen);
+  ley.replaceChildren(...filas);
 }
 
 /* ---------------------------- Ventanas ancladas (la pantalla sube sola) ---------------------------- */
@@ -1193,99 +1739,494 @@ window.addEventListener('scroll', () => {
   if (Math.abs(y - ultimoY) > 8) ultimoY = y;
 }, { passive: true });
 
-/* ============================ Nuevo reporte ============================ */
-let escuchando = null;
-function dictar(destino, boton) {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { destino.focus(); toast('Toca el micrófono del teclado del iPhone para dictar.'); return; }
-  if (escuchando) { escuchando.stop(); return; }
-  const r = new SR();
-  r.lang = 'es-CO'; r.interimResults = false; r.maxAlternatives = 1;
-  r.onresult = e => { const t = e.results[0][0].transcript; destino.value = (destino.value + ' ' + t).trim(); };
-  r.onerror = () => toast('No te escuché. Intenta otra vez o usa el micrófono del teclado.');
-  r.onend = () => { escuchando = null; boton.classList.remove('escuchando'); };
-  escuchando = r; boton.classList.add('escuchando');
-  try { r.start(); } catch (e) { r.onend(); }
+/* ============================ Nuevo reporte = chat con Claude ============================ */
+// Un chat por reporte: estado.chat = { idChat, modelo, mensajes: [ {rol:'yo', texto, adjNombre} | {rol:'claude', crudo, mensaje, tarjetas:[…]} ] }.
+// Cada tarjeta: { …datos de Claude, est: 'pendiente'|'guardando'|'hecha', idHoja, idPedido, error }.
+// Se guarda en el celular como borrador (clase 'chat') hasta que la última tarjeta se registra.
+const MODELOS = { sonnet: 'Sonnet 5.5 · medio', opus: 'Opus 5.5 · medio' };
+estado.modelo = 'sonnet';
+estado.adjunto = null; // { tipo, datos (base64), nombre } esperando a enviarse
+
+function ponerModelo(m) {
+  estado.modelo = m === 'opus' ? 'opus' : 'sonnet';
+  $('bModelo').classList.toggle('opus', estado.modelo === 'opus');
+  $('bModelo').querySelector('.etq').classList.toggle('oculto', estado.modelo !== 'opus');
+  $('bModelo').setAttribute('aria-label', 'Modelo de Claude: ' + MODELOS[estado.modelo]);
+  document.querySelectorAll('[data-modelo]').forEach(b => { const s = b.dataset.modelo === estado.modelo; b.classList.toggle('sel', s); b.setAttribute('aria-checked', String(s)); b.querySelector('.ok').style.visibility = s ? 'visible' : 'hidden'; });
 }
-async function revisar() {
-  const texto = $('frase').value.trim();
-  $('fraseError').textContent = '';
-  if (!texto) { $('fraseError').textContent = 'Escribe o dicta el reporte.'; return; }
-  $('revisar').disabled = true;
-  try {
-    const r = await api('interpretar', { texto });
-    if (r.lista) { abrirLista({ texto, lista: r.lista, aviso: r.aviso }); return; }
-    const p = r.interpretacion, c = r.coincidencia;
-    if ((!p.monto && !c) || (!p.concepto && !c)) { abrirAyuda(texto, r); return; }
-    abrirRevision({ p, c, aviso: r.aviso, texto });
-  } catch (e) { $('fraseError').textContent = e.message; }
-  finally { $('revisar').disabled = false; }
+function menu(id, abrirlo) {
+  ['menuMas', 'menuModelo', 'menuMasChat'].forEach(m => { if (m !== id || !abrirlo) $(m).classList.add('oculto'); });
+  if (abrirlo) $(id).classList.remove('oculto');
+  $('bMas').setAttribute('aria-expanded', String(id === 'menuMas' && abrirlo));
+  $('bModelo').setAttribute('aria-expanded', String(id === 'menuModelo' && abrirlo));
 }
 
-/* ---------------------------- 2d · Claude ayuda (sin IA hasta la etapa 3) ---------------------------- */
-function abrirAyuda(texto, r) {
-  const p = Object.assign({}, r.interpretacion);
-  estado.ayuda = { texto, p, c: r.coincidencia, mensajes: [{ yo: texto }] };
-  pintarAyuda();
-  abrirVentana('claude', $('lblNuevo'), $('revisar'), $('ventanaClaude'), true);
+/* ---------- Adjuntos: foto (se achica a 1600 px) o PDF ---------- */
+function elegirArchivo(cual) { menu('', false); $({ camara: 'archCamara', galeria: 'archGaleria', pdf: 'archPdf' }[cual]).click(); }
+async function leerArchivo(input) {
+  const f = input.files && input.files[0]; input.value = '';
+  if (!f) return;
+  try {
+    if (f.type === 'application/pdf') {
+      if (f.size > 4.4e6) throw new Error('El PDF pesa más de 4 MB. Mándalo como foto.');
+      const datos = await new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = mal; r.readAsDataURL(f); });
+      estado.adjunto = { tipo: 'application/pdf', datos, nombre: f.name || 'factura.pdf' };
+    } else if (/^image\//.test(f.type)) {
+      const img = await createImageBitmap(f);
+      const k = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      estado.adjunto = { tipo: 'image/jpeg', datos: c.toDataURL('image/jpeg', 0.85).split(',')[1], nombre: f.name || 'foto.jpg' };
+    } else throw new Error('Solo fotos o PDF.');
+  } catch (e) { toast(e.message || 'No se pudo leer el archivo.', true); estado.adjunto = null; }
+  pintarAdjunto();
 }
-function pintarAyuda() {
-  const a = estado.ayuda, p = a.p, C = $('chatAyuda'); C.textContent = '';
-  C.append(el('div', { style: 'padding:8px 2px;font-size:13px;color:#d8c3b0', text: 'No se entendió bien el reporte. Termínalo con Claude.' }));
-  a.mensajes.forEach(m => C.append(m.yo != null ? el('div', { class: 'yo', text: m.yo }) : el('div', { class: 'bot', text: m.bot })));
-  const k = catDe(p);
-  const cuando = p.fecha === hoyTxt() ? 'de hoy' : 'del ' + fechaCorta(p.fecha);
-  C.append(el('div', { class: 'bot', text: p.concepto ? 'Entendí "' + p.concepto + '" ' + cuando + (p.tipo ? ' (' + etiquetaCat(p, k) + ')' : '') + '.' : 'No entendí en qué fue.' }));
-  const enredado = p.concepto && p.concepto.split(/\s+/).length > 3 && !a.nombreOk;
-  if (!p.concepto || enredado) C.append(preguntaTexto(p.concepto ? '¿Cómo lo llamo? (corto)' : '¿En qué fue?', p.palabra ? 'Ej. ' + p.palabra : 'Ej. almuerzo', 'text', v => { p.concepto = v.charAt(0).toUpperCase() + v.slice(1); a.nombreOk = true; }));
-  if (!p.monto) C.append(preguntaTexto('¿Cuánto fue?', 'Ej. 18.000', 'numeric', v => { const n = parseInt(v.replace(/\D/g, ''), 10); if (n) p.monto = (p.clase === 'gasto' ? -1 : 1) * n; else toast('Escribe el valor en números, ej. 18.000', true); }));
-  C.append(el('div', { class: 'bot' }, el('span', { text: '¿Cómo pagaste?' }), el('div', { style: 'display:flex;gap:6px' },
-    ['Efectivo', 'Nequi'].map(m => el('button', { type: 'button', class: 'chipN' + (p.medio === m ? ' sel' : ''), 'aria-pressed': String(p.medio === m), text: m, onclick: () => { p.medio = m; pintarAyuda(); } })))));
-  const listo = p.monto && p.concepto;
-  if (listo) {
-    C.append(el('div', { class: 'bot' }, el('span', { text: 'Así quedaría. ¿Es correcto?' }),
-      el('div', { class: 'mini' }, icono(k, 36, 18, 10),
-        el('span', { class: 't' }, el('b', { text: p.concepto }), el('span', { text: etiquetaCat(p, k) + ' · ' + (p.fecha === hoyTxt() ? 'hoy' : fechaCorta(p.fecha)) + (p.medio ? ' · ' + p.medio : '') })),
-        el('span', { class: 'val ' + claseMonto(p), style: 'font-size:14px', text: pesos(p.monto) }))));
+function pintarAdjunto() {
+  const a = estado.adjunto, enChat = !$('chat').classList.contains('oculto');
+  ['adjInicio', 'adjChat'].forEach(id => $(id).classList.add('oculto'));
+  if (!a) return;
+  const caja = $(enChat ? 'adjChat' : 'adjInicio');
+  caja.querySelector('span').textContent = (a.tipo === 'application/pdf' ? 'PDF · ' : 'Foto · ') + a.nombre;
+  caja.classList.remove('oculto');
+}
+
+/* ---------- Abrir, guardar y cerrar el chat ---------- */
+function guardarChat() { if (estado.chat) guardarLocal(LLAVE_BORRADOR, { clase: 'chat', chat: estado.chat, creado: Date.now() }); }
+function abrirChat() {
+  menu('', false);
+  $('chat').classList.remove('oculto');
+  document.body.style.overflow = 'hidden';
+  $('chatModelo').textContent = '· ' + MODELOS[estado.chat.modelo];
+  pintarChat(); pintarAdjunto();
+}
+function cerrarChat() {
+  if (!$('chat').classList.contains('oculto')) estado.chatCerradoEn = Date.now();
+  $('chat').classList.add('oculto'); document.body.style.overflow = '';
+  pintarAdjunto(); pintarBorrador();
+}
+function terminarChat() {
+  estado.chat = null; borrarBorrador(); cerrarChat();
+  $('frase').value = ''; estado.adjunto = null; pintarAdjunto(); ponerModelo('sonnet');
+  volverAlInicioYCargar();
+}
+function descartarChat() {
+  if (estado.chat && estado.chat.mensajes.some(m => m.tarjetas && m.tarjetas.some(t => t.est === 'guardando'))) return toast('Espera a que termine de guardar.', true);
+  estado.chat = null; borrarBorrador(); cerrarChat(); toast('Reporte descartado: no se guardó nada más.');
+}
+
+/** Botón "Registrar" de Inicio: empieza un chat nuevo con lo escrito (y el archivo, si hay). */
+function enviarDesdeInicio() {
+  const texto = $('frase').value.trim();
+  $('fraseError').textContent = '';
+  if (!texto && !estado.adjunto) { $('fraseError').textContent = 'Escribe o dicta el reporte, o adjunta una foto o PDF.'; return; }
+  if (esperarGuardado(enviarDesdeInicio)) return; // el anterior aún se guarda: se escribe ya y luego sigue
+  traerChatBorrador();
+  if (estado.chat) {
+    // Hay un chat sin terminar: se abre ese y lo nuevo queda escrito en su cajita (no se pierde ni se manda solo).
+    estado.chat.esperando = false; abrirChat();
+    if (texto) { const c = $('chatTxt'); c.value = (c.value.trim() ? c.value.trim() + ' ' : '') + texto; $('frase').value = ''; }
+    toast('Tienes un reporte sin terminar: lo nuevo quedó escrito abajo. Envíalo aquí o termina lo anterior.');
+    return;
   }
-  $('ayudaSi').disabled = !listo;
+  // Hay un formulario a medias (Editar, Reprogramar…): se pregunta. Si sigue con ese, lo escrito queda en la cajita de Inicio.
+  if (leerLocal(LLAVE_BORRADOR)) return antesDeOtroReporte(enviarDesdeInicio);
+  estado.chat = { idChat: uuid(), modelo: estado.modelo, mensajes: [] };
+  $('frase').value = '';
+  abrirChat();
+  enviarAClaude(texto);
+}
+/**
+ * Pago del correo "Por revisar" (enlace ?revisar=M0xxx o franja "Pago del correo sin completar"): abre el chat de Claude
+ * con ese pago ya cargado. El puente le pasa a Claude la fila (y la otra del traslado); la tarjeta lleva revisarId y
+ * "Registrar" confirma ESA fila (acción "revisar"), nunca crea otra.
+ */
+function revisarDelCorreo(id) {
+  const s = (estado.datos && estado.datos.sinCompletar) || [];
+  const r = s.find(x => x.id === id);
+  if (esperarGuardado(() => revisarDelCorreo(id))) return;
+  traerChatBorrador();
+  if (estado.chat && estado.chat.revisarId === id) { estado.chat.esperando = false; abrirChat(); return; } // ya lo había empezado
+  if (!r) return toast(id + ' ya no está por revisar (¿ya lo confirmaste?).', true);
+  const b = leerLocal(LLAVE_BORRADOR);
+  if (b && b.clase === 'uno' && b.editar && b.editar.id === id) return abrirRevision({ borrador: b }); // ese mismo pago, a medias en el formulario
+  if (b) return antesDeOtroReporte(() => revisarDelCorreo(id)); // otro reporte sin terminar (chat o formulario): se pregunta
+  const traslado = /^Traslado /.test(r.grupo || '');
+  estado.chat = { idChat: uuid(), modelo: estado.modelo, mensajes: [], revisarId: id };
+  const texto = (traslado ? 'Confirmar traslado ' : 'Revisar pago del correo ') + id + ': ' + r.concepto + ' · ' + pesos(r.monto) + ' · ' + fechaCorta(r.fecha) + (r.medio ? ' · ' + r.medio : '');
+  const otra = traslado ? s.find(x => x.grupo === r.grupo && x.id !== id) : null;
+  if (otra) return trasladoDelCorreo(r, otra, texto);
+  abrirChat();
+  enviarAClaude(texto);
+}
+/**
+ * Traslado del correo: sus 2 filas ya dicen todo (valor, fecha, de dónde a dónde), así que la tarjeta se arma aquí
+ * sin consultar a Claude. Si Juan luego escribe algo en el chat (ej. "eran 200 mil"), Claude recibe esta tarjeta como contexto.
+ */
+function trasladoDelCorreo(r, otra, texto) {
+  const ch = estado.chat;
+  const sale = r.monto < 0 ? r : otra, entra = sale === r ? otra : r;
+  const sub = /^(Nequi a Efectivo|Efectivo a Nequi)$/.test(r.sub || '') ? r.sub : (sale.medio || 'Nequi') + ' a ' + (entra.medio || 'Efectivo');
+  const valor = Math.abs(r.monto);
+  // Sin el valor en el texto (la tarjeta lo muestra y respeta el ojo).
+  const mensaje = 'Traslado ' + (sub === 'Efectivo a Nequi' ? 'de efectivo a Nequi' : 'de Nequi a efectivo') + ' del ' + fechaCorta(r.fecha) + ', con sus 2 filas. Si está bien, toca Registrar.';
+  const tarjeta = { concepto: r.concepto || (sale.medio === 'Efectivo' ? 'Depósito' : 'Retiro'), monto: valor, tipo: 'Traslado', sub, fecha: r.fecha, medio: '', tienda: '', nota: '', coincideId: '', productos: [] };
+  const crudo = JSON.stringify({ mensaje, tarjetas: [Object.assign({ categoria: 'Traslado' }, tarjeta)] });
+  ch.mensajes.push({ rol: 'yo', texto, textoClaude: texto, adjNombre: '' });
+  ch.mensajes.push({ rol: 'claude', crudo, mensaje, tarjetas: [Object.assign(tarjeta, { est: 'pendiente', idPedido: uuid(), abierta: false, revisarId: r.id, revisarOtra: otra.id })] });
+  guardarChat();
+  abrirChat();
+}
+/** La otra fila de un traslado del correo (las 2 tienen el mismo Grupo "Traslado M…"). */
+function otraDelTraslado(id) {
+  const s = (estado.datos && estado.datos.sinCompletar) || [];
+  const f = s.find(x => x.id === id);
+  const o = f && f.grupo ? s.find(x => x.grupo === f.grupo && x.id !== id) : null;
+  return o ? o.id : '';
+}
+function enviarDesdeChat() {
+  const inp = $('chatTxt'), texto = inp.value.trim();
+  if (!texto && !estado.adjunto) return;
+  if (estado.chat.esperando) return;
+  inp.value = '';
+  enviarAClaude(texto);
+}
+async function enviarAClaude(texto) {
+  const ch = estado.chat;
+  const adj = estado.adjunto; estado.adjunto = null; pintarAdjunto();
+  // Avisa a Claude qué tarjetas ya quedaron registradas (para que no las repita).
+  const hechas = [];
+  ch.mensajes.forEach(m => (m.tarjetas || []).forEach(t => { if (t.est === 'hecha' && !t.avisada) { hechas.push('"' + t.concepto + '"'); t.avisada = true; } }));
+  const textoClaude = (hechas.length ? '(Ya registré: ' + hechas.join(', ') + ') ' : '') + texto;
+  // Las que siguen por registrar, tal como están AHORA (con lo que Juan cambió a mano): Claude las devuelve junto con las nuevas.
+  const enviadas = ch.mensajes.flatMap(m => m.tarjetas || []).filter(t => t.est === 'pendiente');
+  const pendientes = enviadas.map(t => ({
+    concepto: t.concepto, monto: t.monto, categoria: t.tipo || '', sub: t.sub || '', fecha: t.fecha, medio: t.medio || '', tienda: t.tienda || '',
+    nota: t.nota || '', coincideId: t.coincideId || '', productos: (t.productos || []).map(p => ({ nombre: p.nombre, cant: p.cant, unit: p.unit })) }));
+  ch.mensajes.push({ rol: 'yo', texto, textoClaude, adjNombre: adj ? adj.nombre : '' });
+  ch.esperando = true; ch.error = ''; guardarChat(); pintarChat();
+  // Conversación para el puente: los archivos viejos no se reenvían (solo el de este mensaje).
+  const mensajes = ch.mensajes.map((m, i) => m.rol === 'yo'
+    ? Object.assign({ rol: 'yo', texto: (m.adjNombre && i < ch.mensajes.length - 1 ? '(adjunto ya leído) ' : '') + (m.textoClaude || m.texto) }, i === ch.mensajes.length - 1 && adj ? { adjunto: { tipo: adj.tipo, datos: adj.datos } } : {})
+    : { rol: 'claude', texto: m.crudo || JSON.stringify({ mensaje: m.mensaje, tarjetas: [] }) });
+  try {
+    const r = await api('claude', Object.assign({ modelo: ch.modelo, mensajes, pendientes }, ch.revisarId ? { revisar: ch.revisarId } : {}));
+    if (estado.chat !== ch) return;
+    // Las pendientes que se le mandaron quedan reemplazadas por lo que devuelve (las pendientes + las nuevas).
+    // Solo esas: una que volvió a pendiente con Deshacer mientras Claude pensaba no se pierde.
+    if (r.tarjetas.length) enviadas.forEach(t => { if (t.est === 'pendiente') t.est = 'reemplazada'; });
+    // Pago del correo: la primera tarjeta es ESE cobro (se confirma sobre su fila); si Claude manda más, son aparte.
+    ch.mensajes.push({ rol: 'claude', crudo: r.crudo, mensaje: r.mensaje, tarjetas: r.tarjetas.map((t, i) => Object.assign(cuadrarCompra(t), { est: 'pendiente', idPedido: uuid(), abierta: false },
+      ch.revisarId && !ch.revisarHecho && i === 0 ? { revisarId: ch.revisarId } : {})) });
+  } catch (e) {
+    if (estado.chat !== ch) return;
+    ch.error = e.message; ch.errorCodigo = e.codigo || '';
+    if (adj) estado.adjunto = adj; // para reintentar sin volver a elegir el archivo
+  } finally {
+    ch.esperando = false;
+    if (estado.chat === ch) { guardarChat(); pintarChat(); pintarAdjunto(); }
+  }
+}
+
+/* ---------- Pintar el chat ---------- */
+function pintarChat() {
+  const ch = estado.chat, C = $('chatC'); if (!ch) return;
+  C.textContent = '';
+  ch.mensajes.forEach(m => {
+    if (m.rol === 'yo') { C.append(el('div', { class: 'yo' }, m.adjNombre ? el('div', { style: 'font-size:12px;color:var(--texto2);margin-bottom:4px', text: '📎 ' + m.adjNombre }) : '', m.texto || '')); return; }
+    if (m.mensaje) C.append(el('div', { class: 'bot', text: m.mensaje }));
+    m.tarjetas.forEach(t => { if (t.est !== 'reemplazada') C.append(tarjetaChat(t)); });
+  });
+  if (ch.esperando) C.append(el('div', { class: 'escribiendo', text: 'Claude está escribiendo…' }));
+  if (ch.error) {
+    const manual = /SIN_SALDO|CLAVE|OCUPADO|^CLAUDE$/.test(ch.errorCodigo || '') || /formulario manual/.test(ch.error);
+    C.append(el('div', { class: 'bot' }, el('span', { style: 'color:var(--gasto)', text: ch.error }),
+      el('div', { style: 'display:flex;gap:6px;flex-wrap:wrap' },
+        el('button', { type: 'button', class: 'chipN', text: 'Reintentar', onclick: reintentar }),
+        manual ? el('button', { type: 'button', class: 'chipN sel', text: 'Formulario manual', onclick: formularioManual }) : '')));
+  }
+  if (ch.mensajes.length && !ch.esperando) C.append(el('button', { type: 'button', class: 'descartar', text: 'Descartar este reporte', onclick: descartarChat }));
+  $('chatEnviar').disabled = !!ch.esperando;
   requestAnimationFrame(() => { C.scrollTop = C.scrollHeight; });
 }
-function preguntaTexto(preg, ejemplo, modo, guardar) {
-  const inp = el('input', { type: 'text', inputmode: modo, placeholder: ejemplo, 'aria-label': preg, maxlength: '60', autocomplete: 'off' });
-  const ok = () => { const v = inp.value.trim(); if (!v) return; guardar(v); pintarAyuda(); };
-  inp.addEventListener('keydown', e => { if (e.key === 'Enter') ok(); });
-  return el('div', { class: 'bot' }, el('span', { text: preg }), el('div', { class: 'chatIn' }, inp, el('button', { type: 'button', text: 'Listo', onclick: ok })));
+function reintentar() {
+  const ch = estado.chat; if (!ch || ch.esperando) return;
+  const ultimo = ch.mensajes[ch.mensajes.length - 1];
+  if (!ultimo || ultimo.rol !== 'yo') return;
+  ch.mensajes.pop();
+  // El archivo no se guarda en el borrador: si se cortó con un adjunto, hay que elegirlo otra vez.
+  if (ultimo.adjNombre && !estado.adjunto) { ch.error = ''; guardarChat(); pintarChat(); $('chatTxt').value = ultimo.texto || ''; return toast('Adjunta otra vez ' + ultimo.adjNombre + ' y envíalo.', true); }
+  enviarAClaude(ultimo.texto);
 }
-async function ayudaEscribir() {
-  const inp = $('ayudaTxt'), t = inp.value.trim(); if (!t) return;
-  const a = estado.ayuda; inp.value = '';
-  a.mensajes.push({ yo: t });
+/** Sin Claude (sin saldo o caído): el formulario de siempre, con lo escrito en la Nota para no perderlo. */
+function formularioManual() {
+  const ch = estado.chat, escrito = ch ? ch.mensajes.filter(m => m.rol === 'yo').map(m => m.texto).join(' · ') : '';
+  estado.chat = null; borrarBorrador(); cerrarChat();
+  abrirRevision({ p: { concepto: '', monto: 0, fecha: hoyTxt(), tipo: '', sub: '', medio: '', tienda: '', clase: 'gasto', avisos: [] }, c: null, aviso: null, texto: escrito });
+  if (escrito) $('rNota').value = escrito.slice(0, 200);
+}
+
+/** Compra con productos: a la hoja va la suma de los productos, así que la tarjeta muestra esa suma.
+ *  Si Claude dijo otro total, se guarda en totalDicho para avisarlo en la tarjeta. */
+function cuadrarCompra(t) {
+  if (!t.productos || t.productos.length < 2) return t;
+  const suma = t.productos.reduce((s, p) => s + Math.round(p.cant * p.unit), 0);
+  if (t.monto && Math.abs(t.monto) !== suma) t.totalDicho = Math.abs(t.monto);
+  t.monto = -suma;
+  return t;
+}
+/* ---------- Saldo: un gasto nunca deja Nequi ni Efectivo en negativo (regla de Juan, chat 19) ----------
+ * Si no alcanza, primero se registra de dónde salió la plata (retiro, ingreso, préstamo) o solo lo que Juan pagó.
+ * No aplica a lo que llega del correo de Nequi (eso ya pasó en el banco) ni a lo programado. */
+function saldoActual(medio) {
+  const d = estado.inicioListo || estado.datos, s = d && d.resumen; // inicioListo = lo que trajo la última escritura
+  const v = s ? (medio === 'Nequi' ? s.nequi : medio === 'Efectivo' ? s.efectivo : null) : null;
+  return typeof v === 'number' ? v + correoSinCompletar(d, medio) : null;
+}
+/**
+ * Pagos del correo "sin completar" (Por revisar): la plata ya se movió en Nequi, pero la hoja aún no los cuenta en
+ * Nequi / Efectivo. Inicio y el control de saldo sí los cuentan (decidido por Juan el 24-nov-2026).
+ * Los de la fecha del corte o antes no: ya estaban en el saldo que se contó ese día.
+ */
+function filasCorreoSinCompletar(d) {
+  const s = d && d.resumen, corte = (s && s.corte) || '', hoy = (d && d.hoy) || hoyTxt();
+  return ((d && d.sinCompletar) || []).filter(x => x.fecha > corte && x.fecha <= hoy);
+}
+function correoSinCompletar(d, medio) {
+  return filasCorreoSinCompletar(d).filter(x => (x.medio || 'Nequi') === medio).reduce((t, x) => t + (Number(x.monto) || 0), 0);
+}
+/** Corte Nequi / efectivo (Resumen): lo de esa fecha o antes ya estaba en el saldo que se contó ese día. */
+function corteTxt() {
+  const d = estado.inicioListo || estado.datos, s = d && d.resumen;
+  return (s && s.corte) || '';
+}
+function antesDelCorte(fecha) { const c = corteTxt(); return !!(c && fecha && String(fecha).slice(0, 10) <= c); }
+/** Cuánto mueve un reporte o tarjeta en ese medio (un traslado saca de uno y mete en el otro). */
+function efectoEn(x, medio) {
+  const v = Math.abs(Number(x.monto) || 0), sub = x.sub || '';
+  if (x.tipo === 'Traslado') return /^Nequi a Efectivo/i.test(sub) ? (medio === 'Nequi' ? -v : v) : /^Efectivo a Nequi/i.test(sub) ? (medio === 'Efectivo' ? -v : v) : 0;
+  return x.medio === medio ? (Number(x.monto) || 0) : 0;
+}
+/** '' si alcanza; si no, el texto del bloqueo. extra = lo que se suma al saldo de hoy (tarjetas guardándose, o el valor viejo al editar). */
+function faltaSaldo(mueve, medio, extra, otras, enChat) {
+  if (!(mueve < 0)) return '';
+  const hoy = saldoActual(medio); if (hoy == null) return '';
+  const hay = hoy + (extra || 0);
+  if (hay + mueve >= 0) return '';
+  const ayuda = (otras || []).filter(x => x.est === 'pendiente' && efectoEn(x, medio) > 0);
+  if (ayuda.length && hay + mueve + ayuda.reduce((s, x) => s + efectoEn(x, medio), 0) >= 0)
+    return 'Registra primero ' + ayuda.map(x => '"' + x.concepto + '"').join(' y ') + ': con eso te alcanza.';
+  return 'Solo tienes ' + pesos(Math.max(hay, 0)) + ' en ' + medio + '. ' + (enChat
+    ? 'Dile a Claude de dónde salió el resto: retiro de Nequi, te dieron o prestaron plata, o la compra se dividió.'
+    : 'Registra primero de dónde salió el resto (retiro de Nequi, plata que te dieron o prestaron) o pon solo lo que tú pagaste.');
+}
+/** Lo que se está guardando en el chat (los 5 s de Deshacer) todavía no está en el saldo de hoy. */
+function guardandoEnChat(medio, sin) {
+  const ch = estado.chat; if (!ch) return 0;
+  return ch.mensajes.flatMap(m => m.tarjetas || []).filter(x => x !== sin && x.est === 'guardando').reduce((s, x) => s + efectoEn(x, medio), 0);
+}
+function faltaSaldoTarjeta(t) {
+  const ch = estado.chat;
+  if (!ch || t.revisarId || t.fecha > hoyTxt() || antesDelCorte(t.fecha)) return '';
+  const otras = ch.mensajes.flatMap(m => m.tarjetas || []).filter(x => x !== t && x.est !== 'reemplazada');
+  for (const medio of ['Nequi', 'Efectivo']) {
+    const f = faltaSaldo(efectoEn(t, medio), medio, guardandoEnChat(medio, t), otras, true);
+    if (f) return f;
+  }
+  return '';
+}
+/** Formulario manual y Editar: al editar, el valor viejo ya estaba descontado, así que se devuelve antes de comparar. */
+function faltaSaldoForm(mov, viejo) {
+  if (mov.fecha > hoyTxt() || antesDelCorte(mov.fecha)) return '';
+  for (const medio of ['Nequi', 'Efectivo']) {
+    const extra = (viejo && !antesDelCorte(viejo.fecha) ? -efectoEn(viejo, medio) : 0) + (estado.chatTarjeta ? guardandoEnChat(medio, estado.chatTarjeta) : 0);
+    const f = faltaSaldo(efectoEn(mov, medio), medio, extra, null, false);
+    if (f) return f;
+  }
+  return '';
+}
+/** Si el aviso rojo de Revisar/Editar era de saldo, se vuelve a mirar en vivo (al bajar el valor se quita sin tocar Guardar). */
+function refrescarSaldoRev() {
+  const rev = estado.rev, E = $('regError');
+  if (!rev || !/^(Solo tienes|Registra primero)/.test(E.textContent)) return;
+  const mov = movDeRevision(), reprog = esProgramado(rev.editar);
+  E.textContent = mov.monto && mov.fecha && mov.medio && !modoProgramar() ? faltaSaldoForm(mov, rev.editar && !reprog ? rev.editar : null) : '';
+}
+function tarjetaChat(t) {
+  const k = catDe(t), futura = t.fecha > hoyTxt(), compra = t.productos && t.productos.length >= 2;
+  const titulo = el('div', { class: 'arriba' }, icono(k, 38, 18, 10),
+    el('span', { class: 't' }, el('b', { text: t.concepto }), el('span', { text: tipoTxt(t) + (compra ? ' · ' + t.productos.length + ' productos' : '') })),
+    el('span', { class: 'val ' + claseMonto(t), text: t.monto ? pesos(t.monto) : '$ ?' }));
+  if (t.est === 'hecha') return el('div', { class: 'tarjC hecha' }, titulo,
+    el('span', { class: 'listo', text: '✓ ' + (futura ? 'Programado' : 'Registrado') + ' · ' + (t.idHoja || '') + ' · ' + (t.fecha === hoyTxt() ? 'hoy' : fechaConAnio(t.fecha)) + (t.medio ? ' · ' + t.medio : '') }));
+  const det = el('div', { class: 'detC' },
+    el('span', {}, el('em', { text: 'Fecha ' }), (t.fecha === hoyTxt() ? 'hoy ' : '') + fechaConAnio(t.fecha) + (futura ? ' (programar)' : '')),
+    t.tipo === 'Traslado' ? el('span', {}, el('em', { text: 'De ' }), (t.sub || '—').replace(' a ', ' → '))
+      : el('span', {}, el('em', { text: futura ? 'Pagar con ' : 'Pagado con ' }), t.medio || '—'),
+    t.tienda ? el('span', {}, el('em', { text: 'Tienda ' }), t.tienda) : '',
+    t.nota ? el('span', {}, el('em', { text: 'Nota ' }), t.nota) : '',
+    compra ? el('button', { type: 'button', class: 'verMas', text: t.abierta ? 'Ocultar detalles ‹' : 'Ver detalles ›', onclick: () => { t.abierta = !t.abierta; pintarChat(); } }) : '');
+  const caja = el('div', { class: 'tarjC' }, titulo, det);
+  if (compra && t.abierta) caja.append(el('div', { class: 'prods' }, ...t.productos.map(p => el('div', {}, el('span', { text: (p.cant > 1 ? p.cant + ' × ' : '') + p.nombre }), el('span', { text: miles(Math.round(p.cant * p.unit)) })))));
+  if (compra && t.totalDicho) caja.append(el('span', { class: 'aviso', text: 'Los productos suman $' + miles(Math.abs(t.monto)) + '; el total era $' + miles(t.totalDicho) + '. Corrígelo en el chat si no es así.' }));
+  const traslado = t.tipo === 'Traslado';
+  const otra = traslado && t.revisarId ? (t.revisarOtra || otraDelTraslado(t.revisarId)) : '';
+  if (t.revisarId) caja.append(el('span', { class: 'aviso', text: traslado ? 'Traslado del correo: se confirman sus 2 filas (' + t.revisarId + (otra ? ' y ' + otra : ' y la otra') + ').'
+    : t.coincideId ? 'Es ' + t.coincideId + ': se confirma esa fila y se quita ' + t.revisarId + ' (el pago del correo).'
+    : 'Completa ' + t.revisarId + ' (pago del correo): se confirma esa misma fila.' }));
+  else if (t.coincideId) caja.append(el('span', { class: 'aviso', text: futura
+    ? 'Se parece a ' + t.coincideId + ' (ya está en la hoja): al programar te pregunto si lo dejas, lo cambias o creas uno nuevo.'
+    : 'Paga ' + t.coincideId + ' que estaba en la hoja: se confirma esa fila.' }));
+  // Mientras Claude piensa, la tarjeta espera: su respuesta la va a reemplazar (si se registrara ya, volvería repetida).
+  const espera = !!(estado.chat && estado.chat.esperando);
+  // Si solo falta el método, se elige aquí mismo (un traslado no lleva método: son 2 filas, una en cada medio).
+  if (!t.medio && !futura && !traslado) caja.append(el('div', { style: 'display:flex;gap:6px;align-items:center' }, el('span', { style: 'font-size:12px;color:var(--suave)', text: '¿Cómo pagaste?' }),
+    ...['Nequi', 'Efectivo'].map(m => el('button', { type: 'button', class: 'chipN', text: m, disabled: espera, onclick: () => { t.medio = m; guardarChat(); pintarChat(); } }))));
+  if (t.error) caja.append(el('span', { class: 'aviso', style: 'color:var(--gasto)', text: t.error }));
+  const falta = !t.monto ? 'Falta el valor: díselo a Claude o usa Editar.' : !t.tipo ? 'Falta la categoría: usa Editar.' : (t.monto > 0 && !t.nota && !traslado) ? 'Falta la nota (de dónde viene la plata): usa Editar.' : '';
+  if (falta) caja.append(el('span', { class: 'aviso', text: falta }));
+  const guardando = t.est === 'guardando', sinPlata = !falta && !guardando ? faltaSaldoTarjeta(t) : '';
+  if (sinPlata) caja.append(el('span', { class: 'aviso', style: 'color:var(--gasto)', text: sinPlata }));
+  caja.append(el('div', { class: 'bts' },
+    traslado ? '' : el('button', { type: 'button', class: 'bEd', text: 'Editar', disabled: guardando || espera, onclick: () => editarTarjeta(t) }),
+    el('button', { type: 'button', class: 'bReg', disabled: guardando || espera || !!falta || !!sinPlata || (!t.medio && !futura && !traslado),
+      text: guardando ? 'Guardando…' : (futura ? (compra ? 'Programar compra' : 'Programar') : (compra ? 'Registrar compra' : 'Registrar')),
+      onclick: () => registrarTarjeta(t) })));
+  return caja;
+}
+
+/* ---------- Registrar una tarjeta (sin esperar: se marca y se guarda por detrás) ---------- */
+async function registrarTarjeta(t) {
+  const ch = estado.chat; if (!ch || t.est !== 'pendiente' || ch.esperando) return;
+  const futura = t.fecha > hoyTxt(), compra = t.productos && t.productos.length >= 2;
+  if (futura && !compra) return editarTarjeta(t); // programar uno suelto usa la pantalla de siempre (pregunta si ya existe)
+  if (faltaSaldoTarjeta(t)) { pintarChat(); return; } // sin plata en ese medio: no se registra (el aviso ya está en la tarjeta)
+  // ¿Es la última por registrar? Entonces el chat se cierra YA y se guarda por detrás; si falla, vuelve como "Reporte sin terminar".
+  const ultima = !chatSinResponder(ch) && !ch.mensajes.some(m => (m.tarjetas || []).some(x => x !== t && (x.est === 'pendiente' || x.est === 'guardando')));
+  t.est = 'guardando'; t.error = '';
+  if (ultima) {
+    if (t.fecha < estado.periodo.desde || t.fecha > estado.periodo.hasta) estado.periodo = periodoRapido('mes'); // antes de llamar: el puente devuelve ese Inicio
+    if (futura) estado.prog = true;
+    estado.chat = null; borrarBorrador(); cerrarChat();
+    guardarLocal(LLAVE_PENDIENTE, { clase: 'chat', chat: ch, creado: Date.now() }); // si la app se cierra del todo, no se pierde
+    $('frase').value = ''; estado.adjunto = null; pintarAdjunto(); ponerModelo('sonnet');
+  } else { guardarChat(); pintarChat(); }
+  if (!await esperarDeshacer((futura ? 'Programando ' : 'Guardando ') + t.concepto + ' ' + pesos(t.monto))) {
+    // Deshecho: la tarjeta vuelve a quedar por registrar (y el chat se abre otra vez si ya se había cerrado).
+    t.est = 'pendiente';
+    if (ultima) {
+      guardarLocal(LLAVE_PENDIENTE, null);
+      if (!estado.chat) { estado.chat = ch; guardarChat(); abrirChat(); }
+      else if (!leerLocal(LLAVE_BORRADOR)) { guardarLocal(LLAVE_BORRADOR, { clase: 'chat', chat: ch, creado: Date.now() }); pintarBorrador(); }
+    } else if (estado.chat === ch) { guardarChat(); pintarChat(); }
+    toast('Deshecho: ' + t.concepto + ' no se guardó.');
+    return;
+  }
   try {
-    const r = await api('interpretar', { texto: t, sinLista: true });
-    const q = r.interpretacion, cambios = [];
-    if (q.monto) { a.p.monto = (a.p.clase === 'gasto' ? -1 : 1) * Math.abs(q.monto); cambios.push('el valor'); }
-    if (q.medio) { a.p.medio = q.medio; cambios.push('el método'); }
-    if (q.fechaDicha) { a.p.fecha = q.fecha; a.p.fechaDicha = true; cambios.push('la fecha'); }
-    if (q.concepto && !q.monto && !q.medio || (q.concepto && !a.p.concepto)) { a.p.concepto = q.concepto; if (q.tipo) { a.p.tipo = q.tipo; a.p.sub = q.sub; } cambios.push('el concepto'); }
-    a.mensajes.push({ bot: cambios.length ? 'Listo, cambié ' + cambios.join(', ') + '.' : 'No entendí ese cambio. Usa los botones de arriba. (La conversación completa con Claude llega en enero.)' });
-  } catch (e) { a.mensajes.push({ bot: e.message }); }
-  pintarAyuda();
+    let r;
+    if (t.revisarId) {
+      // Pago del correo: se confirma su fila "Por revisar" (o las 2 del traslado, o el proyectado que era).
+      const mov = { concepto: t.concepto, monto: t.monto, fecha: t.fecha, tipo: t.tipo === 'Traslado' ? '' : t.tipo, sub: t.sub, medio: t.medio, nota: t.nota, tienda: t.tienda, innecesario: false };
+      const pedido = { id: t.revisarId, mov, proyectadoId: t.coincideId || '', idPedido: t.idPedido };
+      if (compra) Object.assign(pedido, { items: t.productos.map(p => ({ concepto: p.nombre, monto: -Math.round(p.cant * p.unit), tipo: t.tipo, sub: t.sub, nota: p.cant > 1 ? p.cant + ' × ' + miles(p.unit) : '', tienda: t.tienda })),
+        medio: t.medio, fecha: t.fecha, grupo: t.productos.length >= 6 ? 'Compra en ' + (t.tienda || 'tienda') + ' · ' + Number(t.fecha.slice(8)) + '-' + MESES[Number(t.fecha.slice(5, 7)) - 1].slice(0, 3) : '' });
+      r = await api('revisar', pedido);
+      t.idHoja = t.tipo === 'Traslado' && r.ids ? r.ids.join(' y ') : r.ids ? r.ids[0] + (r.ids.length > 1 ? '…' : '') : r.id;
+      ch.revisarHecho = true;
+    } else if (t.tipo === 'Traslado') {
+      // Traslado a mano (retiro, depósito, efectivo de un amigo por Nequi…): el puente crea sus 2 filas.
+      r = await api('traslado', { monto: Math.abs(t.monto), fecha: t.fecha, sub: t.sub, concepto: t.concepto, nota: t.nota, idPedido: t.idPedido });
+      t.idHoja = r.ids.join(' y ');
+    } else if (compra) {
+      const [, mm, dd] = t.fecha.split('-').map(Number);
+      const grupo = t.productos.length >= 6;
+      const items = t.productos.map(p => ({ concepto: p.nombre, monto: -Math.round(p.cant * p.unit), tipo: t.tipo, sub: t.sub, nota: p.cant > 1 ? p.cant + ' × ' + miles(p.unit) : '', tienda: t.tienda }));
+      r = await api('registrarLista', { items, medio: t.medio || '', fecha: t.fecha, grupo: grupo ? 'Compra en ' + (t.tienda || 'tienda') + ' · ' + dd + '-' + MESES[mm - 1].slice(0, 3) : '', reemplazar: [], programar: futura, idPedido: t.idPedido });
+      t.idHoja = r.ids[0] + (r.ids.length > 1 ? '…' : '');
+    } else {
+      const mov = { concepto: t.concepto, monto: t.monto, fecha: t.fecha, tipo: t.tipo, sub: t.sub, medio: t.medio, nota: t.nota, tienda: t.tienda, innecesario: false, confirmarId: t.coincideId || '' };
+      r = await api('registrar', { mov, idPedido: t.idPedido });
+      t.idHoja = r.id;
+    }
+    t.est = 'hecha';
+    if (estado.chat === ch || ultima) toast((futura ? 'Programado ' : 'Guardado ') + t.idHoja + ': ' + t.concepto + ' ' + pesos(t.monto));
+  } catch (e) { t.est = 'pendiente'; t.error = e.message; }
+  if (ultima) {
+    guardarLocal(LLAVE_PENDIENTE, null);
+    if (t.est === 'hecha') {
+      // Usa el Inicio que ya trajo la respuesta. Si Juan ya se fue a otra pantalla (ej. Detalles › Editar), no lo devuelve a Inicio.
+      if (estado.vista === 'inicio') return volverAlInicioYCargar();
+      try { await cargar(); } catch (e) { toast(e.message, true); }
+      return;
+    }
+    if (!leerLocal(LLAVE_BORRADOR)) { guardarLocal(LLAVE_BORRADOR, { clase: 'chat', chat: ch, creado: Date.now() }); pintarBorrador(); }
+    toast('No se guardó ' + t.concepto + ': ' + t.error + ' Quedó en "Reporte sin terminar".', true);
+    return;
+  }
+  if (estado.chat !== ch) return;
+  guardarChat();
+  const quedan = chatSinResponder(ch) || ch.mensajes.some(m => (m.tarjetas || []).some(x => x.est === 'pendiente' || x.est === 'guardando'));
+  if (!quedan) { if (t.fecha < estado.periodo.desde || t.fecha > estado.periodo.hasta) estado.periodo = periodoRapido('mes'); if (futura) estado.prog = true; terminarChat(); }
+  else pintarChat();
 }
-function ayudaSi() {
-  const a = estado.ayuda; if (!a || !a.p.monto || !a.p.concepto) return;
-  const antes = estado.ventana ? estado.ventana.scrollAntes : window.scrollY;
-  cerrarVentana(true);
-  window.scrollTo(0, antes); // al volver de Revisar, el inicio queda donde estaba
-  abrirRevision({ p: a.p, c: a.c, aviso: null, texto: a.texto });
-  recalcular();
+/** Editar: la pantalla Revisar (o Revisar lista) de siempre; al registrar allí, la tarjeta queda hecha y se vuelve al chat. */
+function editarTarjeta(t) {
+  if (estado.chat && estado.chat.esperando) return; // Claude está respondiendo: la tarjeta va a cambiar
+  if (t.revisarId) {
+    // Pago del correo: se edita ESA fila "Por revisar" (al guardar pasa a Confirmado), con lo que propuso Claude.
+    const fila = ((estado.datos && estado.datos.sinCompletar) || []).find(x => x.id === t.revisarId);
+    if (!fila) return toast(t.revisarId + ' ya no está por revisar.', true);
+    if (t.productos && t.productos.length >= 2) return toast('Corrige los productos en el chat (díselos a Claude).', true);
+    estado.chatTarjeta = t;
+    $('chat').classList.add('oculto'); document.body.style.overflow = '';
+    abrirRevision({ editar: Object.assign({}, fila, { concepto: t.concepto, monto: t.monto, fecha: t.fecha, tipo: t.tipo, sub: t.sub, medio: t.medio || fila.medio, tienda: t.tienda, nota: t.nota }) });
+    return;
+  }
+  estado.chatTarjeta = t;
+  $('chat').classList.add('oculto'); document.body.style.overflow = '';
+  if (t.productos && t.productos.length >= 2) {
+    abrirLista({ texto: '', lista: { tienda: t.tienda, fecha: t.fecha, medio: t.medio, items: t.productos.map(p => ({ concepto: p.nombre, cantidad: p.cant, unitario: p.unit, tipo: t.tipo, sub: t.sub, tienda: t.tienda })) } });
+    return;
+  }
+  const p = { concepto: t.concepto, monto: t.monto, fecha: t.fecha, tipo: t.tipo, sub: t.sub, medio: t.medio, tienda: t.tienda, clase: t.monto > 0 ? 'ingreso' : 'gasto', avisos: [], futura: t.fecha > hoyTxt() };
+  const c = t.coincideId ? ((estado.datos && estado.datos.programados) || []).find(x => x.id === t.coincideId) || { id: t.coincideId, concepto: t.concepto, monto: t.monto, fecha: t.fecha, estado: 'Pendiente', tipo: t.tipo, sub: t.sub } : null;
+  abrirRevision({ p, c, aviso: null, texto: '' });
+  if (t.nota) $('rNota').value = t.nota;
+}
+/** Juan escribió algo que Claude no ha respondido (pensando, se cortó o falló): el chat no se cierra solo al registrar la última tarjeta. */
+function chatSinResponder(ch) { const u = ch && ch.mensajes[ch.mensajes.length - 1]; return !!u && u.rol === 'yo'; }
+/** Lo llaman registrar()/programar()/registrarLista() al guardar algo que vino de una tarjeta. Devuelve true si siguió en el chat. */
+function tarjetaGuardada(id) {
+  const t = estado.chatTarjeta, ch = estado.chat; estado.chatTarjeta = null;
+  if (!t || !ch) return false;
+  t.est = 'hecha'; t.idHoja = id || ''; guardarChat();
+  const quedan = chatSinResponder(ch) || ch.mensajes.some(m => (m.tarjetas || []).some(x => x.est === 'pendiente'));
+  if (!quedan) { estado.chat = null; borrarBorrador(); $('frase').value = ''; ponerModelo('sonnet'); return false; }
+  return true;
+}
+/** Tras guardar desde Revisar/Revisar lista algo que vino de una tarjeta: vuelve al chat si quedan tarjetas. */
+async function trasGuardarDesdeChat(id, que, prog, cal) {
+  if (!estado.chatTarjeta) return false;
+  estado.rev = null; estado.lista = null;
+  const sigue = tarjetaGuardada(id);
+  cal = cal || {};
+  toast((prog ? 'Programado ' : 'Guardado ') + (id || '') + ': ' + que +
+    (prog ? (cal.ok === false ? '. ' + cal.msg : cal.msg ? ' · recordatorio en Google Calendar' : '') : ''), prog && cal.ok === false);
+  if (prog) { estado.prog = true; if (id) estado.abiertos.add(id); } // al cerrar el chat se ve la lista de Programados
+  await volverAlInicioYCargar();
+  if (sigue) abrirChat();
+  return true;
+}
+/** Al volver de Revisar sin guardar (Cancelar o atrás), se regresa al chat. */
+function volverAlChatSiVenia() {
+  if (estado.chatTarjeta && estado.chat) { estado.chatTarjeta = null; abrirChat(); return true; }
+  estado.chatTarjeta = null; return false;
 }
 
 /* ============================ 3 · Revisar reporte ============================ */
 function abrirRevision(o) {
   // o: { p, c, aviso, texto } para uno nuevo · { editar: rep } para editar · { borrador } para continuar
   // quiere = la idea es programar (fecha futura o "programa…"); el modo final lo decide la fecha (modoProgramar).
-  const rev = estado.rev = { idPedido: uuid(), p: o.p || null, c: o.c || null, usarC: !!o.c, editar: o.editar || null, texto: o.texto || '', aprender: '', quiere: false };
+  const rev = estado.rev = { idPedido: uuid(), p: o.p || null, c: o.c || null, usarC: !!o.c, editar: o.editar || null, texto: o.texto || '', quiere: false };
   const sel = $('rTipo'); sel.textContent = '';
   sel.append(el('option', { value: '', text: 'Sin categoría (Por revisar)' }));
   TIPOS.forEach(t => sel.append(el('option', { value: t, text: nombreTipo(t) })));
@@ -1300,7 +2241,8 @@ function abrirRevision(o) {
     rev.signo = r.monto < 0 ? -1 : 1;
   } else if (o.borrador) {
     const b = o.borrador.f;
-    Object.assign(rev, { p: o.borrador.p, c: o.borrador.c, usarC: o.borrador.usarC, editar: o.borrador.editar, texto: o.borrador.texto, aprender: o.borrador.aprender || '', quiere: !!o.borrador.quiere });
+    Object.assign(rev, { p: o.borrador.p, c: o.borrador.c, usarC: o.borrador.usarC, editar: o.borrador.editar, texto: o.borrador.texto, quiere: !!o.borrador.quiere });
+    if (o.borrador.idPedido) rev.idPedido = o.borrador.idPedido; // mismo pedido: si ya había entrado a la hoja, no se duplica
     $('rConcepto').value = b.concepto; $('rValor').value = b.valor; $('rFecha').value = b.fecha; sel.value = b.tipo; $('rSub').value = b.sub;
     ponerMedio(b.medio); $('rNota').value = b.nota; $('rTienda').value = b.tienda || ''; $('rInnecesario').checked = !!b.innecesario;
     rev.signo = b.signo || -1;
@@ -1311,7 +2253,6 @@ function abrirRevision(o) {
     $('rFecha').value = p.fecha;
     sel.value = p.tipo || ''; $('rSub').value = p.sub || '';
     ponerMedio(p.medio || ''); $('rNota').value = ''; $('rTienda').value = p.tienda || ''; $('rInnecesario').checked = false;
-    rev.aprender = !p.tipo && p.palabra ? p.palabra : '';
     rev.signo = p.monto ? Math.sign(p.monto) : (p.clase === 'gasto' ? -1 : 1);
     rev.quiere = !!(p.futura || p.programar);
     if (p.programar && !p.futura) $('rFecha').value = ''; // "programa…" sin decir cuándo: que elija la fecha
@@ -1404,9 +2345,10 @@ function actualizarRevision() {
     L.append(el('span', { text: 'Reporte nuevo' }));
     if (rev.c) L.append(el('button', { type: 'button', text: 'Es ' + rev.c.concepto, onclick: () => { rev.usarC = true; $('rConcepto').value = rev.c.concepto; actualizarRevision(); recalcular(); } }));
   }
-  const pal = rev.aprender;
-  $('rAprenderCaja').classList.toggle('oculto', !(pal && tipo));
-  if (pal && tipo) $('rAprenderTxt').textContent = 'Recordar que "' + pal + '" es ' + tipo + (sub ? ' › ' + sub : '');
+  // Fecha del corte o antes: la hoja ya lo tenía en el saldo contado ese día (no se bloquea por saldo).
+  const C = $('rCorte'), enCorte = antesDelCorte($('rFecha').value);
+  C.classList.toggle('oculto', !enCorte);
+  C.textContent = enCorte ? 'Fecha del ' + fechaCorta(corteTxt()) + ' o antes (corte): no cambia Nequi ni Efectivo' : '';
 }
 function pintarAlcance(a, caja) {
   const box = $(caja); box.textContent = '';
@@ -1419,17 +2361,24 @@ function pintarAlcance(a, caja) {
   if (a.primerNegativo) box.append(el('div', { class: 'f2', text: 'Ojo: el ' + fechaCorta(a.primerNegativo.fecha) + ' faltarían ' + pesos(-a.primerNegativo.saldo) +
     (a.pendientes && a.pendientes.length ? ' (por ' + a.pendientes.slice(0, 3).map(x => x.concepto).join(', ') + ')' : '') + '.' }));
 }
-let recalcT = 0;
+let recalcT = 0, avisoN = 0;
 function recalcular() {
   clearTimeout(recalcT);
   recalcT = setTimeout(async () => {
     const rev = estado.rev; if (!rev) return;
     const monto = valorFirmado(), fecha = $('rFecha').value;
-    if (!monto || !fecha) { pintarAlcance(null, 'rAlcanza'); return; }
+    if (!monto || !fecha) { rev.avisoDe = ''; pintarAlcance(null, 'rAlcanza'); return; }
+    const pedido = { monto, fecha, confirmarId: rev.c && rev.usarC ? rev.c.id : '', editarId: rev.editar ? rev.editar.id : '' };
+    // El aviso solo depende del valor, la fecha y qué fila se confirma o edita: si eso no cambió (ej. cambió el concepto
+    // o la nota), no se le vuelve a preguntar al puente.
+    const clave = JSON.stringify(pedido);
+    if (rev.avisoDe === clave) return;
+    rev.avisoDe = clave;
+    const n = ++avisoN;
     try {
-      const r = await api('aviso', { monto, fecha, confirmarId: rev.c && rev.usarC ? rev.c.id : '', editarId: rev.editar ? rev.editar.id : '' });
-      if (estado.rev === rev) pintarAlcance(r.aviso, 'rAlcanza');
-    } catch (e) { /* el aviso es opcional */ }
+      const r = await api('aviso', pedido);
+      if (estado.rev === rev && n === avisoN) pintarAlcance(r.aviso, 'rAlcanza'); // una respuesta vieja no pisa la nueva
+    } catch (e) { if (rev.avisoDe === clave) rev.avisoDe = ''; /* el aviso es opcional */ }
   }, 450);
 }
 function datosRevision() {
@@ -1457,12 +2406,15 @@ async function registrar() {
   if (!mov.fecha) errores.push('Falta la fecha.');
   if (!mov.medio) { errores.push('Elige Nequi o Efectivo.'); $('rMedio').classList.add('falta'); }
   if (monto > 0 && (!mov.nota || /…/.test(mov.nota) || /^ingreso:?$/i.test(mov.nota))) errores.push('Completa la nota: de dónde viene la plata.');
+  if (!errores.length) { const f = faltaSaldoForm(mov, rev.editar && !reprog ? rev.editar : null); if (f) errores.push(f); }
   if (errores.length) { $('regError').textContent = errores.join(' '); return; }
-  if (!rev.editar && rev.aprender && tipo && $('rAprender').checked) mov.aprender = { palabra: rev.aprender, tipo, sub: mov.sub };
+  if (!estado.chatTarjeta) return registrarSinEsperar(rev, mov, monto, rev.editar && !reprog);
   $('rRegistrar').disabled = true;
   try {
     const editar = rev.editar && !reprog;
+    if (!await esperarDeshacer('Guardando ' + mov.concepto + ' ' + pesos(monto))) { toast('Deshecho: no se guardó nada.'); return; }
     const r = editar ? await api('editar', { id: rev.editar.id, mov, idPedido: rev.idPedido }) : await api('registrar', { mov, idPedido: rev.idPedido });
+    if (await trasGuardarDesdeChat(r.id, mov.concepto + ' ' + pesos(monto))) return;
     estado.rev = null; borrarBorrador();
     if (!rev.editar) $('frase').value = '';
     toast(editar ? (r.accion === 'sin cambios' ? 'No había nada que cambiar.' : 'Guardado: ' + mov.concepto + ' ' + pesos(monto)) :
@@ -1472,6 +2424,41 @@ async function registrar() {
     await volverAlInicioYCargar();
   } catch (e) { $('regError').textContent = e.message; }
   finally { $('rRegistrar').disabled = false; }
+}
+/**
+ * Registrar sin esperar: vuelve al Inicio de una vez y guarda por detrás. El Inicio nuevo llega en la misma respuesta.
+ * Si falla, lo escrito queda como "Reporte sin terminar" (con el mismo idPedido, reintentar no lo duplica).
+ */
+async function registrarSinEsperar(rev, mov, monto, editar) {
+  const siFalla = { clase: 'uno', f: datosRevision(), p: rev.p, c: rev.c, usarC: rev.usarC, editar: rev.editar, texto: rev.texto, quiere: rev.quiere, idPedido: rev.idPedido, creado: Date.now() };
+  const que = mov.concepto + ' ' + pesos(monto);
+  estado.rev = null; borrarBorrador();
+  guardarLocal(LLAVE_PENDIENTE, siFalla); // si la app se cierra del todo en los 5 s o guardando, vuelve como borrador
+  if (!rev.editar) $('frase').value = '';
+  if (mov.fecha < estado.periodo.desde || mov.fecha > estado.periodo.hasta) estado.periodo = periodoRapido('mes'); // antes de llamar
+  estado.prog = false;
+  const irse = volverAlInicioYCargar.irAlInicio();
+  if (!await esperarDeshacer((editar ? 'Guardando cambios: ' : 'Guardando ') + que)) {
+    // Deshecho: no se escribió nada; vuelve a la pantalla Revisar con lo que había escrito.
+    await irse;
+    guardarLocal(LLAVE_PENDIENTE, null);
+    guardarLocal(LLAVE_BORRADOR, siFalla); continuarBorrador();
+    toast('Deshecho: no se guardó nada.');
+    return;
+  }
+  try {
+    const r = editar ? await api('editar', { id: rev.editar.id, mov, idPedido: rev.idPedido }) : await api('registrar', { mov, idPedido: rev.idPedido });
+    guardarLocal(LLAVE_PENDIENTE, null);
+    toast(editar ? (r.accion === 'sin cambios' ? 'No había nada que cambiar.' : 'Guardado: ' + que) : (r.accion === 'confirmado' ? 'Confirmado ' : 'Guardado ') + r.id + ': ' + que);
+    await irse;
+    try { await cargar(); } catch (e) { toast(e.message, true); }
+  } catch (e) {
+    guardarLocal(LLAVE_PENDIENTE, null);
+    await irse;
+    if (!leerLocal(LLAVE_BORRADOR)) guardarLocal(LLAVE_BORRADOR, siFalla);
+    pintarSinCompletar();
+    toast('No se guardó ' + que + ': ' + e.message + ' Quedó en "Reporte sin terminar".', true);
+  }
 }
 /* ---------------------------- Programar (fecha futura) ---------------------------- */
 function movDeRevision() {
@@ -1498,8 +2485,11 @@ async function programar(decision) {
   $('rRegistrar').disabled = true;
   ['progHoja', 'progNuevo', 'progOtro'].forEach(id => { $(id).disabled = true; });
   try {
+    $('modalProg').classList.add('oculto');
+    if (!await esperarDeshacer((reprog ? 'Reprogramando ' : 'Programando ') + mov.concepto + ' ' + pesos(mov.monto) + ' para el ' + fechaCorta(mov.fecha))) { toast('Deshecho: no se programó nada.'); return; }
     const r = await api('programar', { mov, reprogramarId: reprog, usarId: usar ? usar.id : '', decision: usar ? decision : '', idPedido: rev.idPedido + (decision ? ':' + decision : '') });
     $('modalProg').classList.add('oculto');
+    if (await trasGuardarDesdeChat(r.id, mov.concepto + ' ' + pesos(mov.monto) + ' para el ' + fechaCorta(r.fecha), true, r.calendario)) return;
     estado.rev = null; borrarBorrador();
     if (!rev.editar) $('frase').value = '';
     const quedo = decision === 'hoja' ? usar.concepto + ' ' + pesos(usar.monto) : mov.concepto + ' ' + pesos(mov.monto);
@@ -1530,6 +2520,9 @@ function abrirPreguntaProg(c, mov) {
 }
 /** "Ya lo pagué" en un programado: misma pantalla con la fecha de hoy → Confirmar. */
 function pagarProgramado(r) {
+  if (esperarGuardado(() => pagarProgramado(r))) return;
+  const b = leerLocal(LLAVE_BORRADOR); // si el borrador es este mismo programado, se reemplaza (es el mismo reporte)
+  if (b && !esBorradorDe(b, r)) return antesDeOtroReporte(() => pagarProgramado(r));
   if (r.esCompra) { abrirLista({ editarCompra: r, pagar: true }); return; }
   abrirRevision({ editar: r });
   $('rFecha').value = hoyTxt();
@@ -1539,24 +2532,109 @@ function pagarProgramado(r) {
 }
 
 async function volverAlInicioYCargar() {
+  await volverAlInicioYCargar.irAlInicio();
+  try { await cargar(); } catch (e) { toast(e.message, true); }
+}
+/** Solo la vuelta al Inicio (sin pedir datos). */
+volverAlInicioYCargar.irAlInicio = async function () {
   estado.actual = null;
   const pasos = estado.vista === 'inicio' ? 0 : contarPantallas();
   if (pasos) { await new Promise(ok => { const f = () => { window.removeEventListener('popstate', f); ok(); }; window.addEventListener('popstate', f); history.go(-pasos); setTimeout(f, 700); }); }
   mostrarVista('inicio', true);
-  try { await cargar(); } catch (e) { toast(e.message, true); }
-}
+};
 function contarPantallas() { return (history.state && history.state.n) || 0; }
 
 /* ============================ Borrador ("Reporte sin terminar") ============================ */
+/** Editando una tarjeta del chat (Revisar o Revisar lista): lo cambiado en el formulario pasa a la tarjeta, así al retomar no se pierde. */
+function pasarFormATarjeta() {
+  const t = estado.chatTarjeta; if (!t || t.est !== 'pendiente') return;
+  if (estado.vista === 'revisar' && estado.rev) {
+    const m = movDeRevision();
+    Object.assign(t, { concepto: m.concepto || t.concepto, monto: m.monto || t.monto, fecha: m.fecha || t.fecha, tipo: m.tipo, sub: m.sub,
+      medio: m.medio || t.medio, nota: m.nota, tienda: m.tienda });
+  } else if (estado.vista === 'lista' && estado.lista && estado.lista.items.length >= 2) {
+    const l = estado.lista;
+    Object.assign(t, { fecha: l.fecha || t.fecha, medio: l.medio || t.medio, tienda: l.tienda || t.tienda,
+      productos: l.items.map(it => ({ nombre: it.concepto, cant: it.cant, unit: it.unit })), monto: totalLista(l), totalDicho: 0 });
+  }
+}
 function guardarBorradorSiHay() {
+  if (estado.chat) { pasarFormATarjeta(); guardarChat(); return; } // el chat es el borrador (también si se está editando una de sus tarjetas)
   if (estado.vista === 'revisar' && estado.rev) {
     const f = datosRevision();
-    guardarLocal(LLAVE_BORRADOR, { clase: 'uno', f, p: estado.rev.p, c: estado.rev.c, usarC: estado.rev.usarC, editar: estado.rev.editar, texto: estado.rev.texto, aprender: estado.rev.aprender, quiere: estado.rev.quiere, creado: Date.now() });
+    guardarLocal(LLAVE_BORRADOR, { clase: 'uno', f, p: estado.rev.p, c: estado.rev.c, usarC: estado.rev.usarC, editar: estado.rev.editar, texto: estado.rev.texto, quiere: estado.rev.quiere, idPedido: estado.rev.idPedido, creado: Date.now() });
   } else if (estado.vista === 'lista' && estado.lista) {
     guardarLocal(LLAVE_BORRADOR, { clase: 'lista', l: estado.lista, creado: Date.now() });
   }
 }
 function borrarBorrador() { guardarLocal(LLAVE_BORRADOR, null); }
+/**
+ * Solo cabe UN "Reporte sin terminar". Antes de empezar otro (chat nuevo, pago del correo, Editar, Reprogramar,
+ * "Ya lo pagué") con uno distinto guardado, se pregunta: [Seguir con ese] lo abre; [Descartarlo y seguir] lo borra y hace lo nuevo.
+ * Quien llama ya revisó que lo nuevo no sea ese mismo borrador.
+ */
+function antesDeOtroReporte(nuevo) {
+  if (esperarGuardado(() => antesDeOtroReporte(nuevo))) return;
+  const b = leerLocal(LLAVE_BORRADOR);
+  if (!b) return nuevo();
+  estado.trasBorrador = nuevo;
+  $('borrTit').textContent = b.cortado ? 'Tienes un reporte que se cortó al guardar' : 'Tienes un reporte sin terminar';
+  $('borrTxt').textContent = textoBorrador(b);
+  $('borrError').textContent = ''; $('borrError').classList.add('oculto');
+  $('modalBorr').classList.remove('oculto');
+  $('borrSeguir').focus();
+}
+/**
+ * ¿El reporte anterior aún se está guardando (5 s de Deshacer o enviándose)? Entonces se escribe YA (se acaba su Deshacer)
+ * y `seguir` se repite cuando termine. Así lo nuevo nunca pisa al anterior: si el anterior falla, queda como
+ * "Reporte sin terminar" y la ventanita pregunta. Devuelve true si hay que esperar.
+ */
+function esperarGuardado(seguir) {
+  if (!leerLocal(LLAVE_PENDIENTE) || (estado.esperaDesde && Date.now() - estado.esperaDesde > 20000)) { estado.esperaDesde = 0; return false; } // nunca se queda trabado
+  if (estado.deshacer) estado.deshacer.fin(true);
+  estado.trasGuardado = seguir; // si toca varias veces, vale el último toque (una sola espera)
+  if (!estado.esperaDesde) { estado.esperaDesde = Date.now(); toast('Un momento: termino de guardar el reporte anterior…'); }
+  if (!estado.esperaT) estado.esperaT = setTimeout(() => {
+    estado.esperaT = 0; const f = estado.trasGuardado; estado.trasGuardado = null;
+    if (f && estado.pin) f(); else estado.esperaDesde = 0;
+  }, 300);
+  return true;
+}
+function cerrarModalBorr() { $('modalBorr').classList.add('oculto'); estado.trasBorrador = null; }
+function seguirConBorrador() { cerrarModalBorr(); continuarBorrador(); }
+function descartarBorradorYSeguir() {
+  const b = leerLocal(LLAVE_BORRADOR), nuevo = estado.trasBorrador;
+  if (b && b.clase === 'chat' && estado.chat && estado.chat.mensajes.some(m => (m.tarjetas || []).some(t => t.est === 'guardando'))) {
+    $('borrError').textContent = 'Espera a que termine de guardar.'; $('borrError').classList.remove('oculto'); return;
+  }
+  cerrarModalBorr();
+  if (b && b.clase === 'chat') estado.chat = null;
+  borrarBorrador(); pintarBorrador();
+  if (nuevo) nuevo();
+}
+/** ¿El borrador es de este mismo reporte de la hoja (editarlo, reprogramarlo o pagarlo)? */
+function esBorradorDe(b, r) {
+  if (b.clase === 'uno') return !r.esCompra && !!b.editar && b.editar.id === r.id;
+  if (b.clase === 'lista') return !!r.esCompra && !!b.l.reemplazar && b.l.reemplazar.join() === r.items.map(x => x.id).join();
+  return false;
+}
+/** Al abrir la app: si quedó un reporte a medio guardar (la app se cerró del todo), vuelve como borrador. Reintentar no duplica (mismo idPedido). */
+function recuperarPendiente() {
+  const p = leerLocal(LLAVE_PENDIENTE); if (!p) return;
+  guardarLocal(LLAVE_PENDIENTE, null);
+  if (!leerLocal(LLAVE_BORRADOR)) guardarLocal(LLAVE_BORRADOR, Object.assign(p, { cortado: true }));
+}
+/** Trae el chat guardado como "Reporte sin terminar" (si no hay uno abierto). */
+function traerChatBorrador() {
+  if (estado.chat) return;
+  const b = leerLocal(LLAVE_BORRADOR); if (!b || b.clase !== 'chat') return;
+  const ch = estado.chat = b.chat; ch.esperando = false;
+  // Si la app se cerró guardando, la tarjeta vuelve a "pendiente" (el mismo idPedido evita guardarla dos veces).
+  ch.mensajes.forEach(m => (m.tarjetas || []).forEach(x => { if (x.est === 'guardando') x.est = 'pendiente'; }));
+  // Si se cerró mientras Claude respondía, el último mensaje es de Juan sin respuesta: se ofrece Reintentar.
+  const ult = ch.mensajes[ch.mensajes.length - 1];
+  if (ult && ult.rol === 'yo' && !ch.error) { ch.error = 'Se cortó antes de que Claude respondiera. Toca Reintentar.'; ch.errorCodigo = ''; }
+}
 /** Borrador de un pago del correo (es el MISMO caso que "Pago del correo sin completar"): se muestra solo esa franja. */
 function borradorDelCorreo() {
   const b = leerLocal(LLAVE_BORRADOR);
@@ -1567,17 +2645,31 @@ function pintarBorrador() {
   const b = leerLocal(LLAVE_BORRADOR);
   $('borrador').classList.toggle('oculto', !b || !!borradorDelCorreo());
   if (!b) return;
+  // Si se cortó al guardar, eso va en el título (en el celular la línea de abajo no alcanza para todo).
+  $('borrador').querySelector('b').textContent = b.cortado ? 'Se cortó al guardar' : 'Reporte sin terminar';
+  $('borradorTxt').textContent = textoBorrador(b);
+}
+/** El texto de la franja "Reporte sin terminar" (también lo usa la ventanita que pregunta antes de empezar otro). */
+function textoBorrador(b) {
   let txt = '';
-  if (b.clase === 'uno') {
+  if (b.clase === 'chat') {
+    const ms = b.chat.mensajes, primero = ms.find(m => m.rol === 'yo');
+    const tarj = ms.flatMap(m => m.tarjetas || []).filter(t => t.est !== 'reemplazada');
+    const pend = tarj.filter(t => t.est !== 'hecha').length;
+    // Primero cómo va (en el celular el texto largo se corta al final), luego lo que escribió.
+    txt = (tarj.length ? (pend ? pend + ' por registrar' : chatSinResponder(b.chat) ? 'falta que Claude responda' : 'todo registrado') : 'chat con Claude') + ' · ' +
+      (primero ? (primero.texto || primero.adjNombre || 'Reporte') : 'Reporte').slice(0, 60);
+    if (estado.oculto) txt = txt.replace(/[−-]?\$ ?\d[\d.]*/g, '$ •••••'); // el ojo: el pago del correo trae su valor en el texto
+  } else if (b.clase === 'uno') {
     const f = b.f, falta = [];
     if (!f.concepto.trim()) falta.push('el concepto'); if (!f.valor) falta.push('el valor'); if (!f.medio) falta.push('el método');
-    txt = (f.concepto.trim() || 'Reporte') + (f.valor ? ' · $ ' + f.valor : '') + ' · ' + (falta.length ? 'falta ' + falta.join(' y ') : 'listo para registrar');
+    txt = (f.concepto.trim() || 'Reporte') + (f.valor ? ' · ' + (estado.oculto ? '$ •••••' : '$ ' + f.valor) : '') + ' · ' + (falta.length ? 'falta ' + falta.join(' y ') : 'listo para registrar');
     if (b.editar) txt = 'Editando ' + b.editar.id + ' · ' + txt;
   } else {
     const l = b.l;
     txt = (l.items.length >= 6 ? 'Compra en ' + (l.tienda || 'tienda') : 'Lista') + ' · ' + l.items.length + ' productos · ' + (l.medio ? 'listo para registrar' : 'falta el método');
   }
-  $('borradorTxt').textContent = txt;
+  return txt;
 }
 /** Pagos que entraron solos desde el correo de Nequi y quedaron "Por revisar" (solo sale si hay alguno). */
 function pintarSinCompletar() {
@@ -1593,11 +2685,15 @@ function pintarSinCompletar() {
 function completarDelCorreo() {
   const s = (estado.datos && estado.datos.sinCompletar) || [];
   const bc = borradorDelCorreo();
-  if (bc) abrirRevision({ borrador: bc }); // sigue donde lo dejó
-  else if (s.length) abrirRevision({ editar: s[0] });
+  if (bc) abrirRevision({ borrador: bc }); // sigue donde lo dejó (formulario viejo)
+  else if (s.length) revisarDelCorreo(s[0].id); // lo mismo que el enlace ?revisar= del correo: chat de Claude con el pago cargado
 }
 function continuarBorrador() {
   const b = leerLocal(LLAVE_BORRADOR); if (!b) return;
+  if (b.clase === 'chat') {
+    estado.chat = null; traerChatBorrador();
+    abrirChat(); return;
+  }
   if (b.clase === 'uno') abrirRevision({ borrador: b });
   else { estado.lista = b.l; pintarLista(); abrir('lista'); recalcularLista(); }
 }
@@ -1610,6 +2706,7 @@ function abrirLista(o) {
     // o.pagar = "Ya lo pagué" de una compra programada: misma lista con la fecha de hoy → Confirmar.
     const g = o.editarCompra, eraProg = esProgramado(g);
     l = { idPedido: uuid(), texto: '', tienda: g.tienda || '', fecha: o.pagar ? hoyTxt() : g.fecha, medio: g.medio, reemplazar: g.items.map(x => x.id), eraProg, compraTipo: g.tipo, compraSub: g.sub,
+      antes: { medio: g.medio, monto: g.items.reduce((s, x) => s + (Number(x.monto) || 0), 0) },
       items: g.items.map(x => { const n = leerNota(x.nota); const cant = n.cant || 1; return { concepto: x.concepto, cant, unit: n.unit || Math.abs(x.monto) / cant, tipo: x.tipo, sub: x.sub, tienda: x.tienda || n.lugar, nota: n.texto }; }),
       mensajes: [{ bot: o.pagar
         ? 'Confirmando la compra en ' + (g.tienda || 'la tienda') + '. Corrige con el lápiz lo que cambió (precios, productos), revisa la fecha y el método, y dale Confirmar.'
@@ -1713,16 +2810,6 @@ function recalcularLista() {
     } catch (e) { /* opcional */ }
   }, 400);
 }
-async function listaEscribir() {
-  const inp = $('listaTxt'), t = inp.value.trim(); if (!t) return;
-  const l = estado.lista; inp.value = '';
-  l.mensajes.push({ yo: t });
-  const s = sinTildes(t);
-  if (/nequi/.test(s)) { l.medio = 'Nequi'; l.mensajes.push({ bot: 'Listo, puse Nequi en todos.' }); }
-  else if (/efectivo|cash|billete/.test(s)) { l.medio = 'Efectivo'; l.mensajes.push({ bot: 'Listo, puse Efectivo en todos.' }); }
-  else l.mensajes.push({ bot: 'Por ahora aquí solo entiendo el método de pago. Corrige los productos con el lápiz. (La conversación completa con Claude llega en enero.)' });
-  pintarLista();
-}
 async function registrarLista() {
   const l = estado.lista; if (!l) return;
   $('lError').textContent = '';
@@ -1731,6 +2818,11 @@ async function registrarLista() {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(l.fecha || '')) { $('lError').textContent = 'Elige la fecha.'; return; }
   const programar = l.fecha > hoyTxt();
   if (!l.medio && !programar) { $('lError').textContent = 'Falta el método: ¿Efectivo o Nequi?'; return; }
+  if (!programar) { // al editar una compra ya confirmada, su valor viejo se devuelve antes de comparar
+    const viejo = l.antes && !l.eraProg ? l.antes : null;
+    const f = faltaSaldoForm({ monto: totalLista(l), medio: l.medio, fecha: l.fecha }, viejo);
+    if (f) { $('lError').textContent = f; return; }
+  }
   const grupo = l.items.length >= 6;
   const [, mm, dd] = l.fecha.split('-').map(Number);
   const items = l.items.map(it => ({
@@ -1739,8 +2831,10 @@ async function registrarLista() {
   }));
   $('lRegistrar').disabled = true;
   try {
+    if (!await esperarDeshacer((programar ? 'Programando ' : 'Guardando ') + l.items.length + ' productos · ' + pesos(totalLista(l)))) { toast('Deshecho: no se guardó nada.'); return; }
     const r = await api('registrarLista', { items, medio: l.medio || '', fecha: l.fecha, grupo: grupo ? 'Compra en ' + (l.tienda || 'tienda') + ' · ' + dd + '-' + MESES[mm - 1].slice(0, 3) : '',
       reemplazar: l.reemplazar, programar, idPedido: l.idPedido });
+    if (await trasGuardarDesdeChat(r.ids[0], r.ids.length + ' productos' + (programar ? ' para el ' + fechaCorta(l.fecha) : ''), programar, r.calendario)) return;
     estado.lista = null; borrarBorrador();
     if (!l.reemplazar.length) $('frase').value = '';
     const que = { programado: l.eraProg ? 'Compra reprogramada: ' : 'Programados ', confirmado: 'Compra confirmada: ' }[r.accion] || (l.reemplazar.length ? 'Compra actualizada: ' : 'Guardados ');
@@ -1777,7 +2871,7 @@ function abrirDetalles(r) {
   const k = catDe(r), n = leerNota(r.nota), cr = leerCreado(r.creado);
   $('dCab').replaceChildren(icono(k, 56, 28, 15),
     el('span', { class: 'nom', text: r.concepto }),
-    el('span', { class: 'monto ' + claseMonto(r), style: 'font-size:34px', text: pesos(r.monto) }));
+    el('span', { class: 'monto ' + claseMonto(r), style: 'font-size:34px', text: pesos(r.esTraslado ? r.valor : r.monto) }));
   const prog = esProgramado(r);
   // Programado: para cuándo y cuándo se programó. Ya pagado: solo datos reales con hora
   // (la fecha estimada ya no se muestra). La hora del pago solo se sabe si se confirmó ese mismo día.
@@ -1804,11 +2898,13 @@ function abrirDetalles(r) {
   filas.push(['Estado', r.estado]);
   if (r.innecesario === 'Sí') filas.push(['Innecesario', 'Sí']);
   filas.push(['Registrado por', registradoPor(r.origen)]);
-  filas.push([r.esCompra ? 'IDs en la hoja' : 'ID en la hoja', r.esCompra ? r.items[0].id + ' a ' + r.items[r.items.length - 1].id : r.id]);
-  if (r.grupo && !r.esCompra) filas.push(['Grupo', r.grupo]);
+  filas.push(r.esTraslado ? ['IDs en la hoja', r.items[0].id + ' (' + r.items[0].medio + ') y ' + r.items[1].id + ' (' + r.items[1].medio + ')']
+    : [r.esCompra ? 'IDs en la hoja' : 'ID en la hoja', r.esCompra ? r.items[0].id + ' a ' + r.items[r.items.length - 1].id : r.id]);
+  if (r.grupo && !r.esCompra && !r.esTraslado) filas.push(['Grupo', r.grupo]);
   $('dFilas').replaceChildren(...filas.map(([a, b]) => el('div', { class: 'f' }, el('span', { text: a }), el('span', { text: b }))));
   $('dNota').textContent = (r.esCompra ? '' : n.texto) || 'Sin nota';
-  const editable = ['Confirmado', 'Pagado', 'Por revisar', 'Programado'].includes(r.estado) || r.esCompra;
+  // Un traslado no se edita aquí (son 2 filas): se borra y se vuelve a reportar. Si está por revisar, se confirma con su enlace.
+  const editable = !r.esTraslado && (['Confirmado', 'Pagado', 'Por revisar', 'Programado'].includes(r.estado) || r.esCompra);
   $('dEditar').classList.toggle('oculto', !editable);
   $('dEditar').textContent = prog ? 'Reprogramar' : 'Editar';
   $('dPagado').classList.toggle('oculto', !prog);
@@ -1816,12 +2912,19 @@ function abrirDetalles(r) {
 }
 function editarActual() {
   const r = estado.actual; if (!r) return;
+  if (esperarGuardado(editarActual)) return;
+  const b = leerLocal(LLAVE_BORRADOR);
+  if (b && esBorradorDe(b, r)) return continuarBorrador(); // ya lo estaba editando: sigue donde lo dejó
+  if (b) return antesDeOtroReporte(editarActual); // Editar / Reprogramar con otro reporte sin terminar: se pregunta
   if (r.esCompra) abrirLista({ editarCompra: r }); else abrirRevision({ editar: r });
 }
 function pedirBorrar() {
   const r = estado.actual; if (!r) return;
   $('borrarTit').textContent = r.esCompra ? '¿Borrar la ' + r.concepto.charAt(0).toLowerCase() + r.concepto.slice(1) + '?' : '¿Borrar este reporte?';
-  $('borrarTxt').textContent = r.esCompra
+  if (r.esTraslado) $('borrarTit').textContent = '¿Borrar este traslado?';
+  else if (!r.esCompra && esProgramado(r)) $('borrarTit').textContent = '¿Borrar este programado?';
+  $('borrarTxt').textContent = r.esTraslado ? 'Se quitan sus 2 filas (' + r.items[0].id + ' y ' + r.items[1].id + ', ' + r.medio + ' ' + pesos(r.valor) + ') de la app y de la hoja.'
+    : r.esCompra
     ? 'Se quitan los ' + r.items.length + ' productos de la app y de la hoja (' + pesos(Math.abs(r.monto)) + ').'
     : esProgramado(r)
       ? r.concepto + ' · ' + pesos(Math.abs(r.monto)) + ' · ' + fechaCorta(r.fecha) + '. Se quita de la app, de la hoja y su recordatorio de Google Calendar.' +
@@ -1831,29 +2934,485 @@ function pedirBorrar() {
   $('modalBorrar').classList.remove('oculto');
   $('borrarNo').focus();
 }
+/** Borrar con Deshacer 5 s: vuelve al Inicio sin el reporte; si toca Deshacer, reaparece y la hoja no se tocó. */
 async function borrarActual() {
   const r = estado.actual; if (!r) return;
-  $('borrarSi').disabled = true;
+  const ids = r.esCompra || r.esTraslado ? r.items.map(x => x.id) : [r.id];
+  const que = r.concepto + ' ' + pesos(r.esTraslado ? r.valor : r.monto);
+  $('modalBorrar').classList.add('oculto');
+  const d = estado.datos, antes = d ? { lista: d.lista, programados: d.programados } : null;
+  const poner = (lista, prog) => { if (d && estado.datos === d) { d.lista = lista; d.programados = prog; pintarReportes(); } };
+  if (d) poner((d.lista || []).filter(x => !ids.includes(x.id)), (d.programados || []).filter(x => !ids.includes(x.id)));
+  await volverAlInicioYCargar.irAlInicio();
+  if (!await esperarDeshacer('Borrando ' + que)) {
+    if (antes) poner(antes.lista, antes.programados);
+    toast('Deshecho: ' + r.concepto + ' sigue en tu hoja.');
+    return;
+  }
   try {
-    const ids = r.esCompra ? r.items.map(x => x.id) : [r.id];
     await api('borrar', { ids, idPedido: uuid() });
-    $('modalBorrar').classList.add('oculto');
-    toast('Borrado: ' + r.concepto + ' ' + pesos(r.monto) + '. Queda anotado en el Historial de la hoja.');
+    toast('Borrado: ' + que + '. Queda anotado en el Historial de la hoja.');
     estado.abiertos.delete(r.id);
-    await volverAlInicioYCargar();
-  } catch (e) { $('borrarError').textContent = e.message; }
-  finally { $('borrarSi').disabled = false; }
+    try { await cargar(); } catch (e) { toast(e.message, true); }
+  } catch (e) {
+    if (antes) poner(antes.lista, antes.programados);
+    toast('No se borró ' + que + ': ' + e.message, true);
+  }
+}
+
+/* ============================ 5 · Extractos PDF ============================
+ * Dos verificaciones con PIN o Face ID: al entrar a Extractos y antes de guardar el PDF. El puente (acción "extracto")
+ * da las filas Confirmado/Pagado del rango y el saldo inicial; el PDF se arma aquí, sin librerías de afuera
+ * (Helvetica de los visores de PDF, letras con tilde en WinAnsi). iPhone: menú compartir → Guardar en Archivos; PC: descarga. */
+const TITULAR = 'Juan Manuel Navia';
+const LLAVE_EXTRACTOS = 'byuyo.extractos.v1'; // contador del Nº de extracto por mes (en este celular)
+
+/* ---------- verificación (PIN o Face ID) ---------- */
+function verificarIdentidad(titulo, texto) {
+  if (estado.verif) cerrarVerif(false);
+  return new Promise(ok => {
+    estado.verif = { teclas: '', ocupado: false, ok };
+    $('vfTit').textContent = titulo; $('vfTxt').textContent = texto; $('vfError').textContent = '';
+    $('vfCara').style.visibility = caraActiva() && !caraNoSirve() ? '' : 'hidden';
+    pintarVf();
+    $('modalVerif').classList.remove('oculto');
+  });
+}
+function cerrarVerif(bien) {
+  const v = estado.verif; estado.verif = null;
+  $('modalVerif').classList.add('oculto'); $('vfPuntos').classList.remove('espera');
+  if (v) v.ok(!!bien);
+}
+function pintarVf() {
+  const n = estado.verif ? estado.verif.teclas.length : 0;
+  $('vfPuntos').querySelectorAll('span').forEach((s, i) => s.classList.toggle('lleno', i < n));
+  $('vfPuntos').setAttribute('aria-label', 'PIN: ' + n + ' de 4 dígitos');
+}
+function vfMal(msg) {
+  const v = estado.verif; if (!v) return;
+  v.teclas = ''; v.ocupado = false; pintarVf(); $('vfError').textContent = msg;
+  const p = $('vfPuntos'); p.classList.remove('mal'); void p.offsetWidth; p.classList.add('mal');
+  if (navigator.vibrate) navigator.vibrate(120);
+}
+async function teclaVf(k) {
+  const v = estado.verif; if (!v || v.ocupado) return;
+  if (k === 'cara') {
+    v.ocupado = true; $('vfError').textContent = '';
+    try { const pin = await pinDeCara(); if (estado.verif !== v) return; v.teclas = pin; pintarVf(); v.ocupado = false; await revisarVf(); }
+    catch (e) { if (estado.verif === v) { v.ocupado = false; $('vfError').textContent = e.message === SIN_PRF ? SIN_PRF : 'No se pudo con Face ID. Escribe tu PIN.'; } }
+    return;
+  }
+  if (k === 'borrar') { v.teclas = v.teclas.slice(0, -1); pintarVf(); return; }
+  if (!/^\d$/.test(k) || v.teclas.length >= 4) return;
+  if (!v.teclas) $('vfError').textContent = '';
+  v.teclas += k; pintarVf();
+  if (v.teclas.length === 4) await revisarVf();
+}
+/** PIN igual al de esta sesión → listo al instante (sigue el mismo toque: el menú compartir del iPhone lo necesita).
+ *  Distinto → lo valida el puente (cuenta el intento; 5 errores bloquean como siempre). */
+async function revisarVf() {
+  const v = estado.verif, pin = v.teclas;
+  if (pin === estado.pin) { cerrarVerif(true); return; }
+  v.ocupado = true; $('vfPuntos').classList.add('espera');
+  try {
+    await api('pin', { pin }, { noBloquear: true });
+    if (estado.verif !== v) return;
+    estado.pin = pin; // el puente dice que este es el PIN (se cambió con borrarPin y se creó otro)
+    cerrarVerif(true);
+  } catch (e) {
+    if (estado.verif !== v) return; // bloqueado: la app ya se cerró
+    $('vfPuntos').classList.remove('espera');
+    vfMal(e.codigo === 'PIN_MAL' ? e.message : 'No pude verificar (' + e.message + ').');
+  }
+}
+
+/* ---------- pantalla ---------- */
+function mesX(ym) {
+  const fin = mover(ym + '-01', -1, 1), hoy = hoyTxt();
+  return { desde: ym + '-01', hasta: fin < hoy ? fin : hoy, boton: ym };
+}
+async function abrirExtractos() {
+  if (!await verificarIdentidad('Extractos', 'Confirma con tu PIN o Face ID para ver tus extractos.')) return;
+  if (!estado.pin) return;
+  if (!estado.periodoX || (estado.periodoX.boton !== 'fechas' && estado.periodoX.boton < mover(hoyTxt().slice(0, 7) + '-01', 0, -5).slice(0, 7))) estado.periodoX = mesX(hoyTxt().slice(0, 7));
+  if (!estado.cuentaX) estado.cuentaX = 'ambos';
+  estado.extracto = null;
+  mostrarVista('extractos');
+  pintarExtractos();
+}
+function pintarExtractos() {
+  const p = estado.periodoX, hoy = hoyTxt();
+  const meses = [0, 1, 2, 3, 4, 5].map(i => mover(hoy.slice(0, 7) + '-01', 0, -i).slice(0, 7));
+  const corto = ym => { const [y, m] = ym.split('-').map(Number); const n = MESES[m - 1].slice(0, 3); return n.charAt(0).toUpperCase() + n.slice(1) + ' ' + y; };
+  $('xPeriodos').replaceChildren(...meses.map(ym => [ym, corto(ym)]).concat([['fechas', 'Fechas…']]).map(([k, t]) => {
+    const sel = p.boton === k;
+    const txt = k === 'fechas' && sel ? fechaCorta(p.desde) + ' – ' + fechaCorta(p.hasta) : t;
+    return el('button', { type: 'button', class: 'chip' + (sel ? ' sel' : ''), 'aria-pressed': String(sel),
+      onclick: () => { if (k === 'fechas') { abrirFechas(); return; } estado.periodoX = mesX(k); estado.extracto = null; pintarExtractos(); } }, txt);
+  }));
+  $('xRango').textContent = fechaLarga(p.desde) + ' – ' + fechaLarga(p.hasta);
+  document.querySelectorAll('#xCuenta button').forEach(b => { const s = b.dataset.cuenta === estado.cuentaX; b.classList.toggle('sel', s); b.setAttribute('aria-pressed', String(s)); });
+  $('xCuentaTxt').textContent = estado.cuentaX === 'ambos'
+    ? 'Nequi y Efectivo juntos, con la columna Método. Los traslados salen como sus 2 filas.'
+    : 'Solo lo que se pagó o entró por ' + estado.cuentaX + ' (cada fila dice su cuenta desde el corte del 20 nov 2026).';
+  pintarListo();
+}
+function pintarListo() {
+  const x = estado.extracto;
+  $('xListo').classList.toggle('oculto', !x);
+  $('xGenerar').classList.toggle('oculto', !!x);
+  if (!x) return;
+  const r = x.resumen, cuenta = x.d.cuenta === 'ambos' ? 'Nequi y Efectivo' : x.d.cuenta;
+  $('xListoSub').textContent = fechaLarga(x.d.inicio) + ' – ' + fechaLarga(x.d.hasta) + ' · ' + cuenta + ' · ' +
+    r.n + (r.n === 1 ? ' movimiento' : ' movimientos') + ' · ' + x.paginas + (x.paginas === 1 ? ' página' : ' páginas');
+  const fila = (a, b, cls) => el('div', { class: 'f' }, el('span', {}, a), el('span', { class: cls || '' }, b));
+  $('xFilas').replaceChildren(
+    fila('Saldo inicial (' + fechaCorta(mover(x.d.inicio, -1)) + ')', pesos(r.inicial)),
+    fila('Entró', pesos(r.entro, true), 'val ingreso'),
+    fila('Salió', pesos(-r.salio), 'val gasto'),
+    fila('Saldo final (' + fechaCorta(x.d.hasta) + ')', pesos(r.final)));
+  $('xAviso').textContent = x.d.aviso ? 'Ojo: el extracto ' + x.d.aviso.charAt(0).toLowerCase() + x.d.aviso.slice(1) : '';
+  $('xAviso').classList.toggle('oculto', !x.d.aviso);
+  $('xGuardar').textContent = x.reintentar ? 'Tocar para guardar' : 'Guardar en el dispositivo';
+}
+async function generarExtracto() {
+  const p = estado.periodoX, cuenta = estado.cuentaX || 'ambos';
+  const tok = {}; estado.cargaX = tok; estado.extracto = null; pintarListo();
+  const meses = Math.max(1, Math.round(pDiasApp(p.desde, p.hasta) / 30.4));
+  $('xCargaTxt').textContent = meses >= 3 ? 'Son ' + meses + ' meses de tu hoja: puede tardar unos segundos.' : 'Leyendo tu hoja…';
+  $('xCarga').classList.remove('oculto');
+  try {
+    const d = await api('extracto', { desde: p.desde, hasta: p.hasta, cuenta });
+    if (estado.cargaX !== tok) return;
+    $('xCargaTxt').textContent = 'Armando el PDF…';
+    await new Promise(r => setTimeout(r, 40)); // deja pintar el texto
+    if (estado.cargaX !== tok) return;
+    const ahora = partesAhora();
+    d.numero = numeroExtracto(ahora.y + '-' + ahora.m);
+    d.generado = fechaLarga(ahora.y + '-' + ahora.m + '-' + ahora.d) + ', ' + hora12(ahora.h, ahora.mi);
+    const pdf = pdfExtracto(d);
+    const nombre = 'Extracto Byuyo ' + d.inicio + ' a ' + d.hasta + (d.cuenta === 'ambos' ? '' : ' (' + d.cuenta + ')') + '.pdf';
+    estado.extracto = { bytes: pdf.bytes, paginas: pdf.paginas, resumen: pdf.resumen, d, nombre, verificado: false, reintentar: false };
+    pintarListo();
+  } catch (e) {
+    if (estado.cargaX === tok && !['PIN_MAL', 'BLOQUEADO', 'SIN_PIN'].includes(e.codigo)) toast(e.message, true);
+  } finally {
+    if (estado.cargaX === tok) { estado.cargaX = null; $('xCarga').classList.add('oculto'); }
+  }
+}
+function pDiasApp(a, b) { const f = s => { const x = s.split('-').map(Number); return Date.UTC(x[0], x[1] - 1, x[2]); }; return Math.abs(f(b) - f(a)) / 86400000; }
+function partesAhora() {
+  const p = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: ZONA, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date()).forEach(x => { p[x.type] = x.value; });
+  return { y: p.year, m: p.month, d: p.day, h: p.hour, mi: p.minute };
+}
+/** El siguiente Nº del mes. Solo se gasta al guardar el PDF (generar y no guardar no sube el contador). */
+function numeroExtracto(ym) {
+  const c = leerLocal(LLAVE_EXTRACTOS) || {};
+  return 'BY-' + ym + '-' + String((c[ym] || 0) + 1).padStart(3, '0');
+}
+function gastarNumeroExtracto(numero) {
+  const m = /^BY-(\d{4}-\d{2})-(\d+)$/.exec(numero || ''); if (!m) return;
+  const c = leerLocal(LLAVE_EXTRACTOS) || {};
+  c[m[1]] = Math.max(c[m[1]] || 0, Number(m[2])); guardarLocal(LLAVE_EXTRACTOS, c);
+}
+async function tocarGuardar() {
+  const x = estado.extracto; if (!x) return;
+  if (!x.verificado) {
+    if (!await verificarIdentidad('Guardar extracto', 'Confirma con tu PIN o Face ID para guardar el PDF en este dispositivo.')) return;
+    if (estado.extracto !== x) return;
+    x.verificado = true;
+  }
+  try {
+    const como = await guardarPdf(x);
+    gastarNumeroExtracto(x.d.numero);
+    x.verificado = false; x.reintentar = false; pintarListo();
+    toast(como === 'descarga' ? 'Extracto descargado: ' + x.nombre : 'Extracto listo para guardar.');
+  } catch (e) {
+    if (e.name === 'AbortError') return; // cerró el menú compartir sin elegir
+    if (e.name === 'NotAllowedError') { x.reintentar = true; pintarListo(); toast('Toca "Tocar para guardar" para abrir el menú de compartir.'); return; }
+    toast('No se pudo guardar el PDF (' + e.message + ').', true);
+  }
+}
+/** iPhone/Android: menú compartir (Guardar en Archivos). PC: descarga. Se llama dentro del mismo toque. */
+function guardarPdf(x) {
+  const archivo = new File([x.bytes], x.nombre, { type: 'application/pdf' });
+  const tactil = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+  if (tactil && navigator.canShare && navigator.canShare({ files: [archivo] })) return navigator.share({ files: [archivo], title: x.nombre }).then(() => 'compartir');
+  const url = URL.createObjectURL(archivo);
+  const a = el('a', { href: url, download: x.nombre, style: 'display:none' });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return Promise.resolve('descarga');
+}
+
+/* ---------- PDF ---------- */
+// Anchos de Helvetica y Helvetica-Bold (métricas estándar de Adobe, 1/1000 del tamaño) para los caracteres 32–126.
+const ANCHOS_PDF = {
+  F1: [278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556, 1015,
+    667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 333,
+    556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584],
+  F2: [278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 333, 333, 584, 584, 584, 611, 975,
+    722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556, 333,
+    556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611, 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584],
+};
+const ANCHO_EXTRA = { '·': 278, '–': 556, '—': 1000, '›': 333, '‹': 333, '×': 584, '…': 1000, 'º': 365, 'ª': 370, '¿': 611, '¡': 333, '€': 556, '•': 350, 'í': 278, 'Í': 278, 'ï': 278, 'ì': 278, 'î': 278 };
+// Fuera de Latin-1, lo que sí tiene WinAnsi (el resto se cambia por algo parecido).
+const WINANSI = { '€': 128, '‚': 130, '…': 133, '‹': 139, '‘': 145, '’': 146, '“': 147, '”': 148, '•': 149, '–': 150, '—': 151, '›': 155 };
+function pdfLimpio(s) { return String(s == null ? '' : s).replace(/[   ]/g, ' ').replace(/[−]/g, '-').replace(/⇄|→/g, '›'); }
+function anchoTxt(s, f, tam) {
+  let w = 0;
+  for (const ch of pdfLimpio(s)) {
+    const c = ch.charCodeAt(0);
+    if (c >= 32 && c <= 126) w += ANCHOS_PDF[f][c - 32];
+    else if (ANCHO_EXTRA[ch]) w += ANCHO_EXTRA[ch];
+    else { const b = ch.normalize('NFD').charCodeAt(0); w += b >= 32 && b <= 126 ? ANCHOS_PDF[f][b - 32] : 556; }
+  }
+  return w * tam / 1000;
+}
+/** Texto → cadena de PDF entre paréntesis (WinAnsi, lo que no es ASCII en octal). */
+function pdfTxt(s) {
+  let o = '';
+  for (const ch of pdfLimpio(s)) {
+    let c = ch.charCodeAt(0);
+    if (WINANSI[ch]) c = WINANSI[ch];
+    else if (c > 255 || (c >= 127 && c < 160)) { const b = ch.normalize('NFD').charCodeAt(0); c = b < 127 ? b : 63; }
+    if (c === 40 || c === 41 || c === 92) o += '\\' + String.fromCharCode(c);
+    else if (c < 32 || c > 126) o += '\\' + c.toString(8).padStart(3, '0');
+    else o += String.fromCharCode(c);
+  }
+  return o;
+}
+function recortarTxt(s, f, tam, max) {
+  s = pdfLimpio(s);
+  if (anchoTxt(s, f, tam) <= max) return s;
+  while (s && anchoTxt(s + '…', f, tam) > max) s = s.slice(0, -1);
+  return s.trimEnd() + '…';
+}
+/** Parte un texto en máximo n líneas del ancho dado (la última con "…" si no cabe). */
+function lineasTxt(s, f, tam, max, n) {
+  const pal = pdfLimpio(s).split(/\s+/).filter(Boolean), out = [];
+  let lin = '';
+  while (pal.length) {
+    const prueba = lin ? lin + ' ' + pal[0] : pal[0];
+    if (anchoTxt(prueba, f, tam) <= max || !lin) { lin = prueba; pal.shift(); if (anchoTxt(lin, f, tam) > max) { out.push(recortarTxt(lin, f, tam, max)); lin = ''; } }
+    else { out.push(lin); lin = ''; }
+    if (out.length === n - 1 && pal.length) { out.push(recortarTxt([lin].concat(pal).filter(Boolean).join(' '), f, tam, max)); return out; }
+  }
+  if (lin) out.push(lin);
+  return out.slice(0, n);
+}
+function lienzoPdf() {
+  const ops = [];
+  const n = v => String(Math.round(v * 100) / 100);
+  const col = h => { const x = parseInt(h.slice(1), 16); return [x >> 16, (x >> 8) & 255, x & 255].map(v => n(v / 255)).join(' '); };
+  const Y = y => 842 - y;
+  return {
+    ops,
+    texto(t, x, y, op) {
+      op = op || {};
+      const f = op.b ? 'F2' : 'F1', tam = op.tam || 9;
+      const s = op.max ? recortarTxt(t, f, tam, op.max) : pdfLimpio(t);
+      const w = anchoTxt(s, f, tam);
+      const x0 = op.der ? x - w : x;
+      ops.push('BT /' + f + ' ' + n(tam) + ' Tf ' + col(op.color || '#1e1e22') + ' rg ' + n(x0) + ' ' + n(Y(y)) + ' Td (' + pdfTxt(s) + ') Tj ET');
+      return w;
+    },
+    rect(x, y, w, h, op) {
+      const r = op.radio || 0, k = 0.5523 * r, X0 = x, X1 = x + w, T = Y(y), B = Y(y + h);
+      let p;
+      if (!r) p = n(X0) + ' ' + n(B) + ' ' + n(w) + ' ' + n(h) + ' re';
+      else p = [n(X0 + r) + ' ' + n(T) + ' m', n(X1 - r) + ' ' + n(T) + ' l', [X1 - r + k, T, X1, T - r + k, X1, T - r].map(n).join(' ') + ' c',
+        n(X1) + ' ' + n(B + r) + ' l', [X1, B + r - k, X1 - r + k, B, X1 - r, B].map(n).join(' ') + ' c', n(X0 + r) + ' ' + n(B) + ' l',
+        [X0 + r - k, B, X0, B + r - k, X0, B + r].map(n).join(' ') + ' c', n(X0) + ' ' + n(T - r) + ' l', [X0, T - r + k, X0 + r - k, T, X0 + r, T].map(n).join(' ') + ' c', 'h'].join(' ');
+      ops.push((op.relleno ? col(op.relleno) + ' rg ' : '') + (op.borde ? col(op.borde) + ' RG ' + n(op.grosor || 0.8) + ' w ' : '') + p + ' ' + (op.relleno && op.borde ? 'B' : op.relleno ? 'f' : 'S'));
+    },
+    linea(x1, y1, x2, y2, color, grosor) { ops.push(col(color) + ' RG ' + n(grosor || 0.5) + ' w ' + n(x1) + ' ' + n(Y(y1)) + ' m ' + n(x2) + ' ' + n(Y(y2)) + ' l S'); },
+  };
+}
+function armarPdf(paginas, titulo) {
+  const objs = [];
+  objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+  objs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+  objs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+  const kids = [];
+  paginas.forEach((c, i) => {
+    const pg = 5 + i * 2;
+    kids.push(pg + ' 0 R');
+    objs[pg] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ' + (pg + 1) + ' 0 R >>';
+    objs[pg + 1] = '<< /Length ' + c.length + ' >>\nstream\n' + c + '\nendstream';
+  });
+  objs[2] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + paginas.length + ' >>';
+  const info = objs.length, a = partesAhora();
+  objs[info] = '<< /Title (' + pdfTxt(titulo) + ') /Author (' + pdfTxt(TITULAR) + ') /Producer (Byuyo) /CreationDate (D:' + a.y + a.m + a.d + a.h + a.mi + '00-05\'00\') >>';
+  let s = '%PDF-1.4\n%âãÏÓ\n';
+  const off = [];
+  for (let i = 1; i < objs.length; i++) { off[i] = s.length; s += i + ' 0 obj\n' + objs[i] + '\nendobj\n'; }
+  const xref = s.length;
+  s += 'xref\n0 ' + objs.length + '\n0000000000 65535 f \n' + off.slice(1).map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+  s += 'trailer\n<< /Size ' + objs.length + ' /Root 1 0 R /Info ' + info + ' 0 R >>\nstartxref\n' + xref + '\n%%EOF\n';
+  const bytes = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i) & 255;
+  return bytes;
+}
+/** Arma el extracto (A4). d = respuesta del puente + numero + generado. */
+function pdfExtracto(d) {
+  const ambos = d.cuenta === 'ambos';
+  const VINO = '#a8323e', NEGRO = '#1e1e22', GRIS = '#55555c', GRIS2 = '#7a7a80', VERDE = '#1d7a43', ROJO = '#b3262f';
+  const L = 30, R = 565, ANCHO = R - L, ABAJO = 800, ALTO_FILA = 23;
+  const grupos = n => String(Math.abs(Math.round(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const plata = (n, signo) => (n < 0 ? '– $ ' : signo && n > 0 ? '+ $ ' : '$ ') + grupos(n);
+  const otroAnio = d.inicio.slice(0, 4) !== d.hasta.slice(0, 4);
+  const fechaF = s => fechaCorta(s) + (otroAnio ? ' ' + s.slice(2, 4) : '');
+  let saldo = d.saldoInicial || 0;
+  const filas = (d.filas || []).map(f => { const antes = saldo; saldo += f.monto; return Object.assign({}, f, { antes }); });
+  const cuentan = filas.filter(f => !(ambos && f.tipo === 'Traslado')); // en Ambos el traslado sale y entra: se anula
+  const resumen = { inicial: d.saldoInicial || 0, entro: cuentan.filter(f => f.monto > 0).reduce((s, f) => s + f.monto, 0),
+    salio: -cuentan.filter(f => f.monto < 0).reduce((s, f) => s + f.monto, 0), final: saldo, n: filas.length };
+  const hayTraslados = ambos && filas.some(f => f.tipo === 'Traslado');
+  const cols = ambos
+    ? [['Fecha', 58], ['Categoría', 112], ['Nombre de la compra', 143], ['Saldo anterior', 82, 1], ['Valor del pago', 82, 1], ['Método', 58]]
+    : [['Fecha', 62], ['Categoría', 128], ['Nombre de la compra', 181], ['Saldo anterior', 82, 1], ['Valor del pago', 82, 1]];
+  const periodo = fechaLarga(d.inicio) + ' – ' + fechaLarga(d.hasta);
+
+  function dibujar(total) {
+    const paginas = [];
+    let c, y, pag = 0;
+    const pie = () => {
+      c.linea(L, 810, R, 810, '#e2dfdc', 0.6);
+      c.texto('Solo movimientos confirmados. Generado por Byuyo; no es un documento bancario.', L, 822, { tam: 7.5, color: GRIS2 });
+      c.texto('Página ' + pag + ' de ' + total, R, 822, { tam: 7.5, color: GRIS2, der: true });
+    };
+    const encTabla = () => {
+      c.rect(L, y, ANCHO, 17, { relleno: VINO });
+      let x = L;
+      cols.forEach(([t, w, der]) => { c.texto(t, der ? x + w - 5 : x + 5, y + 11.5, { b: true, tam: 8, color: '#ffffff', der: !!der }); x += w; });
+      y += 17;
+    };
+    const nueva = () => {
+      if (c) { pie(); paginas.push(c.ops.join('\n')); }
+      c = lienzoPdf(); pag++;
+      if (pag === 1) return;
+      const w = c.texto('By', L, 44, { b: true, tam: 15, color: VINO }); c.texto('uyo', L + w, 44, { b: true, tam: 15 });
+      c.texto('Extracto Nº ' + d.numero + ' · ' + TITULAR, R, 36, { tam: 8, color: GRIS, der: true });
+      c.texto('Periodo: ' + periodo + (ambos ? '' : ' · ' + d.cuenta) + ' · Página ' + pag + ' de ' + total, R, 47, { tam: 8, color: GRIS, der: true });
+      c.linea(L, 56, R, 56, VINO, 1.5);
+      y = 70; encTabla();
+    };
+    nueva();
+    // Cabecera
+    let w = c.texto('By', L, 50, { b: true, tam: 22, color: VINO }); c.texto('uyo', L + w, 50, { b: true, tam: 22 });
+    c.texto('Extracto Nº ' + d.numero, R, 36, { tam: 8.5, color: GRIS, der: true });
+    c.texto('Generado el ' + d.generado, R, 47, { tam: 8.5, color: GRIS, der: true });
+    c.texto('Página 1 de ' + total, R, 58, { tam: 8.5, color: GRIS, der: true });
+    c.linea(L, 67, R, 67, VINO, 3);
+    c.texto('Extracto de movimientos', L, 92, { b: true, tam: 15 });
+    let x = L;
+    [[TITULAR, 1], [' · Plataforma Byuyo · Periodo: ', 0], [periodo, 1]].concat(ambos ? [[' · Nequi y Efectivo', 0]] : [[' · Cuenta: ', 0], [d.cuenta, 1]])
+      .forEach(([t, b]) => { x += c.texto(t, x, 107, { b: !!b, tam: 9.5, color: b ? NEGRO : GRIS }); });
+    y = 116;
+    if (d.aviso) { c.texto('Ojo: el extracto ' + d.aviso.charAt(0).toLowerCase() + d.aviso.slice(1), L, y + 9, { tam: 8, color: '#8a5a00' }); y += 12; }
+    // ① Resumen
+    y += 6;
+    const cajas = [['Saldo inicial (' + fechaCorta(mover(d.inicio, -1)) + ')', plata(resumen.inicial), NEGRO], ['Entró', plata(resumen.entro, true), VERDE],
+      ['Salió', plata(-resumen.salio), ROJO], ['Saldo final (' + fechaCorta(d.hasta) + ')', plata(resumen.final), NEGRO]];
+    const wc = (ANCHO - 24) / 4;
+    cajas.forEach(([t, v, col], i) => {
+      const x0 = L + i * (wc + 8);
+      c.rect(x0, y, wc, 40, { borde: '#e2dfdc', radio: 5 });
+      c.texto(t, x0 + 8, y + 14, { tam: 8, color: '#6b6b72', max: wc - 14 });
+      c.texto(v, x0 + 8, y + 31, { b: true, tam: 12, color: col, max: wc - 12 });
+    });
+    y += 40;
+    if (hayTraslados) { c.texto('Entró y Salió no cuentan los traslados entre Nequi y Efectivo (salen y entran por el mismo valor).', L, y + 11, { tam: 7.5, color: GRIS2 }); y += 12; }
+    // ② Por cuenta (solo en Ambos)
+    if (ambos && d.cuentas && (d.cuentas.Nequi || d.cuentas.Efectivo)) {
+      y += 14;
+      c.texto('POR CUENTA', L, y + 9, { b: true, tam: 9.5, color: VINO }); y += 15;
+      const corte = d.cuentas.desde > d.inicio;
+      const wk = (ANCHO - 8) / 2;
+      ['Nequi', 'Efectivo'].forEach((m, i) => {
+        const k = d.cuentas[m]; if (!k) return;
+        const x0 = L + i * (wk + 8);
+        c.rect(x0, y, wk, 66, { relleno: '#f6f4f2', radio: 5 });
+        c.texto(m, x0 + 10, y + 14, { b: true, tam: 10 });
+        [['Saldo al ' + fechaCorta(mover(d.cuentas.desde, -1)) + (corte ? ' (corte)' : ''), plata(k.inicial), NEGRO], ['Entró', plata(k.entro, true), VERDE],
+          ['Salió', plata(-k.salio), ROJO], ['Saldo final', plata(k.final), NEGRO]].forEach(([t, v, col], j) => {
+          c.texto(t, x0 + 10, y + 27 + j * 11, { tam: 8.5, color: GRIS });
+          c.texto(v, x0 + wk - 10, y + 27 + j * 11, { b: true, tam: 8.5, color: col, der: true });
+        });
+      });
+      y += 66;
+      if (corte) { c.texto('Antes del ' + fechaLarga(d.cuentas.desde) + ' las filas no dicen si fue Nequi o Efectivo; por eso el cuadro por cuenta arranca ahí.', L, y + 11, { tam: 7.5, color: GRIS2 }); y += 12; }
+    }
+    // ③ Movimientos
+    y += 14;
+    c.texto('MOVIMIENTOS', L, y + 9, { b: true, tam: 9.5, color: VINO }); y += 14;
+    encTabla();
+    if (!filas.length) { c.texto('No hubo movimientos confirmados en este periodo.', L + 5, y + 15, { tam: 9, color: GRIS2 }); y += ALTO_FILA; }
+    filas.forEach((f, i) => {
+      // la última fila nunca queda separada de la línea del saldo final
+      if (y + ALTO_FILA + (i === filas.length - 1 ? 22 : 0) > ABAJO) nueva();
+      if (i % 2) c.rect(L, y, ANCHO, ALTO_FILA, { relleno: '#faf9f8' });
+      c.linea(L, y + ALTO_FILA, R, y + ALTO_FILA, '#ecebe9', 0.5);
+      let x = L;
+      const celdas = [
+        [fechaF(f.fecha), f.id],
+        [f.tipo || '—', f.sub],
+        null,
+        [plata(f.antes)],
+        [plata(f.monto, true)],
+        [f.medio || '—'],
+      ];
+      cols.forEach(([, w, der], k) => {
+        const max = w - 10;
+        if (k === 2) {
+          const ls = lineasTxt(f.concepto || '—', 'F1', 8.5, max, 2);
+          ls.forEach((l, j) => c.texto(l, x + 5, y + 9.5 + j * 9.5, { tam: 8.5 }));
+        } else {
+          const [a, b] = celdas[k];
+          const color = k === 4 ? (f.monto < 0 ? ROJO : f.monto > 0 ? VERDE : NEGRO) : NEGRO;
+          c.texto(a, der ? x + w - 5 : x + 5, y + 9.5, { tam: 8.5, color, der: !!der, max, b: k === 4 });
+          if (b) c.texto(b, x + 5, y + 18.5, { tam: 7, color: GRIS2, max });
+        }
+        x += w;
+      });
+      y += ALTO_FILA;
+    });
+    if (y + 22 > ABAJO) nueva();
+    const vt = plata(resumen.final);
+    const wv = anchoTxt(vt, 'F2', 9.5);
+    c.texto(vt, R - 5, y + 15, { b: true, tam: 9.5, der: true });
+    c.texto('Saldo final al ' + fechaLarga(d.hasta) + ':  ', R - 5 - wv, y + 15, { tam: 9.5, color: GRIS, der: true });
+    pie(); paginas.push(c.ops.join('\n'));
+    return paginas;
+  }
+  const primera = dibujar(1);
+  const paginas = primera.length === 1 ? primera : dibujar(primera.length);
+  return { bytes: armarPdf(paginas, 'Extracto Byuyo ' + d.numero), paginas: paginas.length, resumen };
 }
 
 /* ============================ Eventos ============================ */
 $('teclado').addEventListener('click', e => { const b = e.target.closest('button'); if (b) tecla(b.dataset.k); });
+$('vfTeclado').addEventListener('click', e => { const b = e.target.closest('button'); if (b) teclaVf(b.dataset.k); });
+$('vfCancelar').addEventListener('click', () => cerrarVerif(false));
+$('xCuenta').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; estado.cuentaX = b.dataset.cuenta; estado.extracto = null; pintarExtractos(); });
+$('xGenerar').addEventListener('click', generarExtracto);
+$('xGuardar').addEventListener('click', tocarGuardar);
+$('desBtn').addEventListener('click', () => { if (estado.deshacer) estado.deshacer.fin(false); });
 document.addEventListener('keydown', e => {
   if (!$('vBloqueo').classList.contains('oculto')) {
     if (/^\d$/.test(e.key)) tecla(e.key); else if (e.key === 'Backspace') tecla('borrar');
     return;
   }
+  if (estado.verif) {
+    if (/^\d$/.test(e.key)) teclaVf(e.key); else if (e.key === 'Backspace') teclaVf('borrar'); else if (e.key === 'Escape') cerrarVerif(false);
+    return;
+  }
   if (e.key === 'Escape') {
     if (!$('modalBorrar').classList.contains('oculto')) $('modalBorrar').classList.add('oculto');
+    else if (!$('modalBorr').classList.contains('oculto')) cerrarModalBorr();
     else if (!$('modalProg').classList.contains('oculto')) $('modalProg').classList.add('oculto');
     else if (!$('modalFechas').classList.contains('oculto')) $('modalFechas').classList.add('oculto');
     else if (estado.ventana) cerrarVentana();
@@ -1863,14 +3422,29 @@ $('ojo').addEventListener('click', () => {
   estado.oculto = !estado.oculto;
   $('ojo').setAttribute('aria-pressed', estado.oculto); $('ojo').setAttribute('aria-label', estado.oculto ? 'Mostrar valores' : 'Ocultar valores');
   $('ojoAbierto').classList.toggle('oculto', estado.oculto); $('ojoCerrado').classList.toggle('oculto', !estado.oculto);
-  pintarResumen(); pintarReportes();
+  pintarResumen(); pintarReportes(); pintarSinCompletar(); // la franja del correo y la del borrador también se ocultan
 });
-$('revisar').addEventListener('click', revisar);
-$('frase').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); revisar(); } });
-$('mic').addEventListener('click', () => dictar($('frase'), $('mic')));
-document.querySelectorAll('[data-foto]').forEach(b => b.addEventListener('click', () => toast('La foto de la factura llega con Claude (enero 2027).')));
-$('foto').addEventListener('click', () => toast('La foto de la factura llega con Claude (enero 2027).'));
+// Doble toque: si el chat se acaba de cerrar (p. ej. "Registrar" de la última tarjeta), el 2.º toque no cae en lo de debajo.
+window.addEventListener('click', e => {
+  if (Date.now() - (estado.chatCerradoEn || 0) < 700 && !e.target.closest('#chat, #toast')) { e.stopPropagation(); e.preventDefault(); }
+}, true);
+$('revisar').addEventListener('click', enviarDesdeInicio);
+$('frase').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); enviarDesdeInicio(); } });
+$('bMas').addEventListener('click', e => { e.stopPropagation(); menu('menuMas', $('menuMas').classList.contains('oculto')); });
+$('bModelo').addEventListener('click', e => { e.stopPropagation(); menu('menuModelo', $('menuModelo').classList.contains('oculto')); });
+$('bMasChat').addEventListener('click', e => { e.stopPropagation(); menu('menuMasChat', $('menuMasChat').classList.contains('oculto')); });
+document.querySelectorAll('[data-modelo]').forEach(b => b.addEventListener('click', () => { ponerModelo(b.dataset.modelo); menu('', false); }));
+document.querySelectorAll('[data-adj]').forEach(b => b.addEventListener('click', () => elegirArchivo(b.dataset.adj)));
+document.querySelectorAll('[data-quitar-adj]').forEach(b => b.addEventListener('click', () => { estado.adjunto = null; pintarAdjunto(); }));
+['archCamara', 'archGaleria', 'archPdf'].forEach(id => $(id).addEventListener('change', () => leerArchivo($(id))));
+document.addEventListener('click', e => { if (!e.target.closest('.menuChico')) menu('', false); });
+$('xChat').addEventListener('click', cerrarChat);
+$('chatEnviar').addEventListener('click', enviarDesdeChat);
+$('chatTxt').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); enviarDesdeChat(); } });
+ponerModelo('sonnet');
 $('borrador').addEventListener('click', continuarBorrador);
+$('borrSeguir').addEventListener('click', seguirConBorrador);
+$('borrDescartar').addEventListener('click', descartarBorradorYSeguir);
 $('sinCompletar').addEventListener('click', completarDelCorreo);
 $('bFiltros').addEventListener('click', () => { if (estado.ventana && estado.ventana.nombre === 'filtros') cerrarVentana(); else abrirFiltros(); });
 $('bMes').addEventListener('click', async () => {
@@ -1887,19 +3461,14 @@ $('fBuscar').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preve
 $('fAplicar').addEventListener('click', aplicarFiltros);
 $('fechasCancelar').addEventListener('click', () => $('modalFechas').classList.add('oculto'));
 $('fechasAplicar').addEventListener('click', aplicarFechas);
-$('xClaude').addEventListener('click', () => { cerrarVentana(); estado.ayuda = null; });
-$('ayudaCancelar').addEventListener('click', () => { cerrarVentana(); estado.ayuda = null; toast('Cancelado: no se guardó nada.'); });
-$('ayudaSi').addEventListener('click', ayudaSi);
-$('ayudaTxt').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ayudaEscribir(); } });
-$('ayudaVoz').addEventListener('click', () => { const i = $('ayudaTxt'); if ($('ayudaVoz').classList.contains('escuchando') || !i.value.trim()) dictar(i, $('ayudaVoz')); else ayudaEscribir(); });
 document.querySelectorAll('[data-volver]').forEach(b => b.addEventListener('click', volver));
-$('rCancelar').addEventListener('click', () => { estado.rev = null; borrarBorrador(); toast('Cancelado: no se guardó nada.'); volverAlInicioYCargar(); });
+$('rCancelar').addEventListener('click', () => { estado.rev = null; if (estado.chatTarjeta) { volver(); return; } borrarBorrador(); toast('Cancelado: no se guardó nada.'); volverAlInicioYCargar(); });
 $('rRegistrar').addEventListener('click', registrar);
-$('rMedio').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ponerMedio(b.dataset.m); });
+$('rMedio').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { ponerMedio(b.dataset.m); refrescarSaldoRev(); } });
 $('rTipo').addEventListener('change', () => {
   // Al cambiar de categoría, la subcategoría anterior solo se deja si también existe en la nueva.
   if (!subsDe($('rTipo').value).some(x => sinTildes(x) === sinTildes($('rSub').value))) $('rSub').value = '';
-  pintarSubs(false); actualizarRevision(); recalcular();
+  pintarSubs(false); actualizarRevision(); recalcular(); refrescarSaldoRev();
 });
 $('rSubSel').addEventListener('change', () => { $('rSub').value = $('rSubSel').value; actualizarRevision(); });
 $('rSubLapiz').addEventListener('click', () => pintarSubs($('rSub').classList.contains('oculto')));
@@ -1907,11 +3476,11 @@ $('rSubLapiz').addEventListener('click', () => pintarSubs($('rSub').classList.co
 $('rValor').addEventListener('input', () => {
   const n = parseInt($('rValor').value.replace(/\D/g, ''), 10);
   $('rValor').value = n ? n.toLocaleString('es-CO') : '';
-  actualizarRevision(); recalcular();
+  actualizarRevision(); recalcular(); refrescarSaldoRev();
 });
 $('rFecha').addEventListener('change', () => {
   if (/¿Para cuándo\?|fecha a pagar|mañana en adelante/.test($('regError').textContent)) $('regError').textContent = '';
-  actualizarRevision(); recalcular();
+  actualizarRevision(); recalcular(); refrescarSaldoRev();
 });
 $('dPagado').addEventListener('click', () => { if (estado.actual) pagarProgramado(estado.actual); });
 $('lFecha').addEventListener('change', () => { const l = estado.lista; if (!l || !$('lFecha').value) return; l.fecha = $('lFecha').value; pintarLista(); recalcularLista(); });
@@ -1919,10 +3488,8 @@ $('progHoja').addEventListener('click', () => programar('hoja'));
 $('progNuevo').addEventListener('click', () => programar('nuevo'));
 $('progOtro').addEventListener('click', () => { $('modalProg').classList.add('oculto'); if (estado.rev) { estado.rev.usarC = false; actualizarRevision(); } programar('otro'); });
 $('progCancelar').addEventListener('click', () => $('modalProg').classList.add('oculto'));
-$('lCancelar').addEventListener('click', () => { estado.lista = null; borrarBorrador(); toast('Cancelado: no se guardó nada.'); volverAlInicioYCargar(); });
+$('lCancelar').addEventListener('click', () => { estado.lista = null; if (estado.chatTarjeta) { volver(); return; } borrarBorrador(); toast('Cancelado: no se guardó nada.'); volverAlInicioYCargar(); });
 $('lRegistrar').addEventListener('click', registrarLista);
-$('listaTxt').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); listaEscribir(); } });
-$('listaVoz').addEventListener('click', () => { const i = $('listaTxt'); if ($('listaVoz').classList.contains('escuchando') || !i.value.trim()) dictar(i, $('listaVoz')); else listaEscribir(); });
 $('cEditar').addEventListener('click', editarActual);
 $('cBorrar').addEventListener('click', pedirBorrar);
 $('dEditar').addEventListener('click', editarActual);
@@ -1934,17 +3501,23 @@ $('barra').addEventListener('click', e => {
   const t = b.dataset.tab;
   if (t === 'inicio') { window.scrollTo({ top: 0, behavior: POCO_MOVIMIENTO ? 'auto' : 'smooth' }); return; }
   if (t === 'reporte') { $('lblNuevo').scrollIntoView({ behavior: POCO_MOVIMIENTO ? 'auto' : 'smooth', block: 'center' }); setTimeout(() => $('frase').focus(), 350); return; }
-  toast({ graficas: 'Gráficas', extractos: 'Extractos', mas: 'Más opciones' }[t] + ': llega en la etapa 3.');
+  if (t === 'graficas') { abrirGraficas(); return; }
+  if (t === 'extractos') { abrirExtractos(); return; }
+  // (El botón "Más" se quitó de la barra: decidido por Juan el 24-nov-2026.)
 });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { estado.ocultoDesde = Date.now(); guardarBorradorSiHay(); return; }
+  if (document.hidden) {
+    estado.ocultoDesde = Date.now();
+    if (estado.deshacer) estado.deshacer.fin(true); // la app se cierra o se apaga la pantalla: se escribe ya
+    guardarBorradorSiHay(); return;
+  }
   if (estado.pin && Date.now() - estado.ocultoDesde > SEG_BLOQUEO * 1000) bloquear('');
 });
 
 if (MODO_DEMO) {
   // Solo en el computador (localhost) para probar sin tocar la hoja real.
   const cargarJs = src => new Promise((ok, mal) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = mal; document.head.append(s); });
-  cargarJs('../apps-script/Parser.gs').then(() => cargarJs('../pruebas/hoja-falsa.js')).then(() => cargarJs('../apps-script/Puente.gs')).then(arrancar)
+  cargarJs('../pruebas/hoja-falsa.js').then(() => cargarJs('../apps-script/Puente.gs')).then(() => cargarJs('../apps-script/Claude.gs')).then(arrancar)
     .catch(() => ponerError('No cargó el modo de prueba.'));
 } else {
   arrancar();
