@@ -346,7 +346,7 @@
   .prodEd .campo input { height: 40px; }
   .prodEd .acc { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; }
   .prodEd .acc button { height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--zona2); font-size: 13px; }
-  .compraCab { padding: 14px; display: flex; align-items: center; gap: 12px; }
+  .compraCab { padding: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
   .compraCab .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .compraCab select { height: 30px; border: 1px solid var(--borde); border-radius: 8px; background: var(--zona2); font-size: 13px; padding: 0 6px; max-width: 100%; color-scheme: dark; }
   .centro { padding: 18px 16px 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
@@ -587,11 +587,12 @@
 <section id="vLista" class="vista pantalla oculto">
   <header><button type="button" class="volver" data-volver aria-label="Volver (queda guardado como borrador)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <h1 id="lTitulo">Revisar lista</h1></header>
-  <section class="portal" aria-label="Chat">
-    <div class="cabP"><span class="punto" aria-hidden="true"></span>Claude</div>
-    <div id="chatLista" class="chat"></div>
-  </section>
-  <section class="caja rForm"><div class="campo"><label for="lFecha" id="lFechaTxt">Fecha</label><input id="lFecha" type="date"></div></section>
+  <section class="caja rForm"><div class="campo"><label for="lFecha" id="lFechaTxt">Fecha</label><input id="lFecha" type="date"></div>
+    <span id="lMedioRot" class="suave" style="font-size:12px;margin-bottom:-4px">Método</span>
+    <div id="lMedio" class="segmento" role="group" aria-label="Método de la lista">
+      <button type="button" data-m="Nequi" aria-pressed="false">Nequi</button>
+      <button type="button" data-m="Efectivo" aria-pressed="false">Efectivo</button>
+    </div></section>
   <section id="lCompra" class="caja compraCab oculto"></section>
   <section id="lItems" style="display:flex;flex-direction:column;gap:8px"></section>
   <p id="lAviso" style="margin:0;font-size:12px;color:var(--apagado);text-align:center"></p>
@@ -1944,7 +1945,7 @@ async function enviarAClaude(texto) {
   // Las que siguen por registrar, tal como están AHORA (con lo que Juan cambió a mano): Claude las devuelve junto con las nuevas.
   const enviadas = ch.mensajes.flatMap(m => m.tarjetas || []).filter(t => t.est === 'pendiente');
   const pendientes = enviadas.map(t => ({
-    concepto: t.concepto, monto: t.monto, categoria: t.tipo || '', sub: t.sub || '', fecha: t.fecha, medio: t.medio || '', tienda: t.tienda || '',
+    concepto: t.concepto, monto: t.monto, regalo: !!t.regalo, categoria: t.tipo || '', sub: t.sub || '', fecha: t.fecha, medio: t.medio || '', tienda: t.tienda || '',
     nota: t.nota || '', coincideId: t.coincideId || '', productos: (t.productos || []).map(p => ({ nombre: p.nombre, cant: p.cant, unit: p.unit })) }));
   ch.mensajes.push({ rol: 'yo', texto, textoClaude, adjNombre: adj ? adj.nombre : '' });
   ch.esperando = true; ch.error = ''; guardarChat(); pintarChat();
@@ -2099,7 +2100,7 @@ function tarjetaChat(t) {
   const k = catDe(t), futura = t.fecha > hoyTxt(), compra = t.productos && t.productos.length >= 2;
   const titulo = el('div', { class: 'arriba' }, icono(k, 38, 18, 10),
     el('span', { class: 't' }, el('b', { text: t.concepto }), el('span', { text: tipoTxt(t) + (compra ? ' · ' + t.productos.length + ' productos' : '') })),
-    el('span', { class: 'val ' + claseMonto(t), text: t.monto ? pesos(t.monto) : '$ ?' }));
+    el('span', { class: 'val ' + claseMonto(t), text: t.monto ? pesos(t.monto) : t.regalo ? 'Regalo · $ 0' : '$ ?' }));
   if (t.est === 'hecha') return el('div', { class: 'tarjC hecha' }, titulo,
     el('span', { class: 'listo', text: '✓ ' + (futura ? 'Programado' : 'Registrado') + ' · ' + (t.idHoja || '') + ' · ' + (t.fecha === hoyTxt() ? 'hoy' : fechaConAnio(t.fecha)) + (t.medio ? ' · ' + t.medio : '') }));
   const det = el('div', { class: 'detC' },
@@ -2126,7 +2127,11 @@ function tarjetaChat(t) {
   if (!t.medio && !futura && !traslado) caja.append(el('div', { style: 'display:flex;gap:6px;align-items:center' }, el('span', { style: 'font-size:12px;color:var(--suave)', text: '¿Cómo pagaste?' }),
     ...['Nequi', 'Efectivo'].map(m => el('button', { type: 'button', class: 'chipN', text: m, disabled: espera, onclick: () => { t.medio = m; guardarChat(); pintarChat(); } }))));
   if (t.error) caja.append(el('span', { class: 'aviso', style: 'color:var(--gasto)', text: t.error }));
-  const falta = !t.monto ? 'Falta el valor: díselo a Claude o usa Editar.' : !t.tipo ? 'Falta la categoría: usa Editar.' : (t.monto > 0 && !t.nota && !traslado) ? 'Falta la nota (de dónde viene la plata): usa Editar.' : '';
+  // Sin valor: o lo dice, o toca "Es regalo" (queda en $ 0 como constancia).
+  if (!t.monto && !t.regalo && !traslado && !compra) caja.append(el('div', { style: 'display:flex;gap:6px;align-items:center' },
+    el('span', { style: 'font-size:12px;color:var(--suave)', text: '¿Fue gratis?' }),
+    el('button', { type: 'button', class: 'chipN', text: 'Es regalo ($ 0)', disabled: espera, onclick: () => { t.regalo = true; t.monto = 0; if (!t.nota) t.nota = 'Regalo'; guardarChat(); pintarChat(); } })));
+  const falta = !t.monto && !t.regalo ? 'Falta el valor: díselo a Claude, usa Editar o toca "Es regalo".' : !t.tipo ? 'Falta la categoría: usa Editar.' : (t.monto > 0 && !t.nota && !traslado) ? 'Falta la nota (de dónde viene la plata): usa Editar.' : '';
   if (falta) caja.append(el('span', { class: 'aviso', text: falta }));
   const guardando = t.est === 'guardando', sinPlata = !falta && !guardando ? faltaSaldoTarjeta(t) : '';
   if (sinPlata) caja.append(el('span', { class: 'aviso', style: 'color:var(--gasto)', text: sinPlata }));
@@ -2231,7 +2236,7 @@ function editarTarjeta(t) {
     abrirLista({ texto: '', lista: { tienda: t.tienda, fecha: t.fecha, medio: t.medio, items: t.productos.map(p => ({ concepto: p.nombre, cantidad: p.cant, unitario: p.unit, tipo: t.tipo, sub: t.sub, tienda: t.tienda })) } });
     return;
   }
-  const p = { concepto: t.concepto, monto: t.monto, fecha: t.fecha, tipo: t.tipo, sub: t.sub, medio: t.medio, tienda: t.tienda, clase: t.monto > 0 ? 'ingreso' : 'gasto', avisos: [], futura: t.fecha > hoyTxt() };
+  const p = { concepto: t.concepto, monto: t.monto, regalo: !!t.regalo, fecha: t.fecha, tipo: t.tipo, sub: t.sub, medio: t.medio, tienda: t.tienda, clase: t.monto > 0 ? 'ingreso' : 'gasto', avisos: [], futura: t.fecha > hoyTxt() };
   const c = t.coincideId ? ((estado.datos && estado.datos.programados) || []).find(x => x.id === t.coincideId) || { id: t.coincideId, concepto: t.concepto, monto: t.monto, fecha: t.fecha, estado: 'Pendiente', tipo: t.tipo, sub: t.sub } : null;
   abrirRevision({ p, c, aviso: null, texto: '' });
   if (t.nota) $('rNota').value = t.nota;
@@ -2293,7 +2298,7 @@ function abrirRevision(o) {
   } else {
     const p = rev.p, c = rev.c;
     $('rConcepto').value = c ? c.concepto : p.concepto;
-    $('rValor').value = p.monto ? miles(p.monto) : '';
+    $('rValor').value = p.monto || p.regalo ? miles(p.monto) : '';
     $('rFecha').value = p.fecha;
     sel.value = p.tipo || ''; $('rSub').value = p.sub || '';
     ponerMedio(p.medio || ''); $('rNota').value = ''; $('rTienda').value = p.tienda || ''; $('rInnecesario').checked = false;
@@ -2334,6 +2339,8 @@ function ponerMedio(m) {
   $('rMedio').classList.remove('falta');
   $('rMedio').querySelectorAll('button').forEach(b => { const s = b.dataset.m === m; b.classList.toggle('sel', s); b.setAttribute('aria-pressed', s); });
 }
+/** Caja del valor vacía. Un 0 escrito sí vale (regalos: queda la constancia sin costo). */
+function valorVacio() { return $('rValor').value.replace(/\D/g, '') === ''; }
 function valorFirmado() {
   const n = parseInt($('rValor').value.replace(/\D/g, ''), 10);
   if (!n) return 0;
@@ -2446,7 +2453,7 @@ async function registrar() {
   };
   const errores = [];
   if (!mov.concepto) errores.push('Falta el concepto.');
-  if (!monto) errores.push('Falta el valor.');
+  if (valorVacio()) errores.push('Falta el valor.');
   if (!mov.fecha) errores.push('Falta la fecha.');
   if (!mov.medio) { errores.push('Elige Nequi o Efectivo.'); $('rMedio').classList.add('falta'); }
   if (monto > 0 && (!mov.nota || /…/.test(mov.nota) || /^ingreso:?$/i.test(mov.nota))) errores.push('Completa la nota: de dónde viene la plata.');
@@ -2518,7 +2525,7 @@ async function programar(decision) {
   const mov = movDeRevision();
   const errores = [];
   if (!mov.concepto) errores.push('Falta el concepto.');
-  if (!mov.monto) errores.push('Falta el valor.');
+  if (valorVacio()) errores.push('Falta el valor.');
   if (!mov.fecha) errores.push('Elige la fecha a pagar.'); else if (mov.fecha <= hoyTxt()) errores.push('Para programar, la fecha debe ser de mañana en adelante.');
   if (mov.monto > 0 && (!mov.nota || /…/.test(mov.nota) || /^ingreso:?$/i.test(mov.nota))) errores.push('Completa la nota: de dónde viene la plata.');
   if (errores.length) { $('regError').textContent = errores.join(' '); return; }
@@ -2711,7 +2718,7 @@ function textoBorrador(b) {
     if (b.editar) txt = 'Editando ' + b.editar.id + ' · ' + txt;
   } else {
     const l = b.l;
-    txt = (l.items.length >= 6 ? 'Compra en ' + (l.tienda || 'tienda') : 'Lista') + ' · ' + l.items.length + ' productos · ' + (l.medio ? 'listo para registrar' : 'falta el método');
+    txt = (l.items.length >= 6 ? nombreLista(l) : 'Lista') + ' · ' + l.items.length + ' productos · ' + (l.medio ? 'listo para registrar' : 'falta el método');
   }
   return txt;
 }
@@ -2752,9 +2759,7 @@ function abrirLista(o) {
     l = { idPedido: uuid(), texto: '', tienda: g.tienda || '', fecha: o.pagar ? hoyTxt() : g.fecha, medio: g.medio, reemplazar: g.items.map(x => x.id), eraProg, compraTipo: g.tipo, compraSub: g.sub,
       antes: { medio: g.medio, monto: g.items.reduce((s, x) => s + (Number(x.monto) || 0), 0) },
       items: g.items.map(x => { const n = leerNota(x.nota); const cant = n.cant || 1; return { concepto: x.concepto, cant, unit: n.unit || Math.abs(x.monto) / cant, tipo: x.tipo, sub: x.sub, tienda: x.tienda || n.lugar, nota: n.texto }; }),
-      mensajes: [{ bot: o.pagar
-        ? 'Confirmando la compra en ' + (g.tienda || 'la tienda') + '. Corrige con el lápiz lo que cambió (precios, productos), revisa la fecha y el método, y dale Confirmar.'
-        : (eraProg ? 'Reprogramando' : 'Editando') + ' la compra en ' + (g.tienda || 'la tienda') + '. Cambia lo que necesites con el lápiz y dale Guardar.' }] };
+      nombre: g.concepto };
     if (o.pagar && !g.medio) l.medio = '';
   } else {
     const x = o.lista;
@@ -2763,12 +2768,8 @@ function abrirLista(o) {
     const masComun = Object.keys(tipos).sort((a, b) => tipos[b] - tipos[a])[0];
     const [ct, cs] = masComun ? masComun.split('|') : ['Hogar', 'Gasto fijo'];
     l = { idPedido: uuid(), texto: o.texto, tienda: x.tienda, fecha: x.fecha, medio: x.medio, reemplazar: [], compraTipo: ct, compraSub: cs,
-      items: x.items.map(it => ({ concepto: it.concepto, cant: it.cantidad || 1, unit: it.unitario || Math.abs(it.monto), tipo: it.tipo, sub: it.sub, tienda: it.tienda || '', nota: '' })),
-      mensajes: [{ yo: o.texto }] };
-    const n = l.items.length, total = l.items.reduce((s, it) => s + it.cant * it.unit, 0);
-    l.mensajes.push({ bot: 'Entendí ' + n + ' productos' + (l.tienda ? ' en ' + l.tienda : '') + ' por ' + pesos(-total).replace('−', '') + '. ' +
-      (n >= 6 ? 'Lo dejo como una sola compra de ' + ct + '.' : 'Los dejo como ' + n + ' reportes separados.') });
-    if (l.medio) l.mensajes.push({ bot: 'Método: ' + l.medio + '. Revisa abajo y dale Registrar.' });
+      items: x.items.map(it => ({ concepto: it.concepto, cant: it.cantidad || 1, unit: it.unitario != null ? it.unitario : Math.abs(it.monto), tipo: it.tipo, sub: it.sub, tienda: it.tienda || '', nota: '' })),
+      nombre: 'Compra en ' + (x.tienda || 'tienda') };
   }
   estado.lista = l;
   pintarLista();
@@ -2776,6 +2777,8 @@ function abrirLista(o) {
   if (o.aviso) pintarAlcance(o.aviso, 'lAlcanza'); else recalcularLista();
 }
 function totalLista(l) { return -l.items.reduce((s, it) => s + Math.round(it.cant * it.unit), 0); }
+/** Nombre de la tarjeta de la compra (6+ productos): lo escribe Juan; si lo deja vacío, "Compra en <tienda>". */
+function nombreLista(l) { return String(l.nombre || '').replace(/·/g, '-').trim().slice(0, 30) || 'Compra en ' + (l.tienda || 'tienda'); }
 function pintarLista() {
   const l = estado.lista, n = l.items.length, grupo = n >= 6, editando = l.reemplazar.length > 0;
   // La fecha decide, como en el reporte normal: futura = programar; hoy o antes = registrar
@@ -2786,12 +2789,9 @@ function pintarLista() {
   $('lRegistrar').textContent = boton;
   $('lFecha').value = l.fecha; $('lFecha').removeAttribute('max');
   $('lFechaTxt').textContent = prog ? 'Fecha a pagar' : 'Fecha';
-  // Chat
-  const C = $('chatLista'); C.textContent = '';
-  l.mensajes.forEach(m => C.append(m.yo != null ? el('div', { class: 'yo', text: m.yo }) : el('div', { class: 'bot', text: m.bot })));
-  if (!l.medio) C.append(el('div', { class: 'bot' }, el('span', { text: prog ? '¿Cómo lo vas a pagar? (opcional)' : '¿Cómo pagaste?' }), el('div', { style: 'display:flex;gap:6px' },
-    ['Efectivo', 'Nequi'].map(m => el('button', { type: 'button', class: 'chipN', text: m, onclick: () => { l.medio = m; l.mensajes.push({ yo: m }, { bot: 'Listo, lo puse en todos. Revisa abajo y dale ' + boton + '.' }); pintarLista(); } })))));
-  requestAnimationFrame(() => { C.scrollTop = C.scrollHeight; });
+  // Método (Nequi | Efectivo), igual que en Editar reporte
+  $('lMedioRot').textContent = prog ? 'Método probable (opcional)' : 'Método';
+  $('lMedio').querySelectorAll('button').forEach(b => { const s = b.dataset.m === l.medio; b.classList.toggle('sel', s); b.setAttribute('aria-pressed', s); });
   // Compra agrupada (6 o más)
   const cab = $('lCompra'); cab.textContent = ''; cab.classList.toggle('oculto', !grupo);
   if (grupo) {
@@ -2801,8 +2801,12 @@ function pintarLista() {
     if (!opciones.some(([t, su]) => t === l.compraTipo && su === l.compraSub)) opciones.unshift([l.compraTipo, l.compraSub]);
     opciones.forEach(([t, su]) => s.append(el('option', { value: t + '|' + su, text: t + (su ? ' (' + su.toLowerCase() + ')' : '') })));
     s.value = l.compraTipo + '|' + l.compraSub;
-    cab.append(icono(k, 48, 24, 13),
-      el('div', { class: 't' }, el('b', { style: 'font-size:16px', text: 'Compra en ' + (l.tienda || 'tienda') }),
+    const nom = el('input', { type: 'text', maxlength: '30', value: nombreLista(l), autocomplete: 'off', 'aria-label': 'Nombre de la compra',
+      style: 'height:30px;border:0;border-bottom:1px solid var(--borde);background:transparent;font-size:16px;font-weight:700;padding:0;min-width:0;width:100%;border-radius:0',
+      oninput: e => { l.nombre = e.target.value; } });
+    cab.append(el('div', { class: 'campo', style: 'flex-basis:100%' }, el('label', { style: 'font-size:12px;color:var(--suave)', text: 'Nombre de la compra' }), nom),
+      icono(k, 48, 24, 13),
+      el('div', { class: 't' }, el('b', { style: 'font-size:16px', text: (l.tienda || 'Compra') }),
         el('span', { style: 'font-size:12px;color:var(--suave)', text: (l.medio || 'falta el método') + ' · ' + fechaCorta(l.fecha) }), s),
       el('div', { style: 'display:flex;flex-direction:column;align-items:flex-end;gap:2px' },
         el('span', { class: 'val gasto', style: 'font-size:18px', text: pesos(totalLista(l)) }),
@@ -2830,8 +2834,9 @@ function filaEditable(it, i) {
   const cant = el('input', { type: 'text', inputmode: 'numeric', maxlength: '3', value: String(it.cant), autocomplete: 'off' });
   const unit = el('input', { type: 'text', inputmode: 'numeric', maxlength: '12', value: miles(it.unit), autocomplete: 'off' });
   const listo = () => {
+    // Precio 0 vale (regalos: queda la constancia); vacío no.
     const c = parseInt(cant.value.replace(/\D/g, ''), 10), u = parseInt(unit.value.replace(/\D/g, ''), 10);
-    if (!nom.value.trim() || !c || !u) { toast('Revisa nombre, unidades y precio.', true); return; }
+    if (!nom.value.trim() || !c || isNaN(u)) { toast('Revisa nombre, unidades y precio.', true); return; }
     Object.assign(it, { concepto: nom.value.trim(), cant: c, unit: u, editando: false }); pintarLista(); recalcularLista();
   };
   const l = estado.lista;
@@ -2876,7 +2881,7 @@ async function registrarLista() {
   $('lRegistrar').disabled = true;
   try {
     if (!await esperarDeshacer((programar ? 'Programando ' : 'Guardando ') + l.items.length + ' productos · ' + pesos(totalLista(l)))) { toast('Deshecho: no se guardó nada.'); return; }
-    const r = await api('registrarLista', { items, medio: l.medio || '', fecha: l.fecha, grupo: grupo ? 'Compra en ' + (l.tienda || 'tienda') + ' · ' + dd + '-' + MESES[mm - 1].slice(0, 3) : '',
+    const r = await api('registrarLista', { items, medio: l.medio || '', fecha: l.fecha, grupo: grupo ? nombreLista(l) + ' · ' + dd + '-' + MESES[mm - 1].slice(0, 3) : '',
       reemplazar: l.reemplazar, programar, idPedido: l.idPedido });
     if (await trasGuardarDesdeChat(r.ids[0], r.ids.length + ' productos' + (programar ? ' para el ' + fechaCorta(l.fecha) : ''), programar, r.calendario)) return;
     estado.lista = null; borrarBorrador();
@@ -3678,6 +3683,7 @@ document.querySelectorAll('[data-volver]').forEach(b => b.addEventListener('clic
 $('rCancelar').addEventListener('click', () => { estado.rev = null; if (estado.chatTarjeta) { volver(); return; } borrarBorrador(); toast('Cancelado: no se guardó nada.'); volverAlInicioYCargar(); });
 $('rRegistrar').addEventListener('click', registrar);
 $('rMedio').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { ponerMedio(b.dataset.m); refrescarSaldoRev(); } });
+$('lMedio').addEventListener('click', e => { const b = e.target.closest('button'); const l = estado.lista; if (b && l) { l.medio = b.dataset.m; $('lError').textContent = ''; pintarLista(); } });
 $('rTipo').addEventListener('change', () => {
   // Al cambiar de categoría, la subcategoría anterior solo se deja si también existe en la nueva.
   if (!subsDe($('rTipo').value).some(x => sinTildes(x) === sinTildes($('rSub').value))) $('rSub').value = '';
