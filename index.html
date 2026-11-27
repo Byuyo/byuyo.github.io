@@ -827,6 +827,8 @@ const CAT = {
   salidas: { t: 'Salidas', u: 'Salidas', c: '#e8846a', f: '#3a2620', d: 'M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2.2a1.8 1.8 0 0 0 0 3.6V16a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2.2a1.8 1.8 0 0 0 0-3.6zM14 6v2M14 11v2M14 16v2' },
   salud: { t: 'Salud', u: 'Salud', c: '#72c6b8', f: '#1f3330', d: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z' },
   cuidado: { t: 'Cuidado personal', u: 'Cuidado personal', c: '#c9b79c', f: '#33302a', d: 'M2 7a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M2 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M7.6 8.5L22 15.2c-.4 1-1.4 1.4-2.4 1l-6.8-3.2M7.6 15.5L22 8.8c-.4-1-1.4-1.4-2.4-1l-6.8 3.2M15 12h.01' },
+  // Gustos (Juan, 27-nov-2026): carita feliz en blanco perla apagado (el amarillo ya es de Servicios).
+  gustos: { t: 'Gustos', u: 'Gustos', c: '#e6e1d6', f: '#31302c', d: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M8 14.2c1 1.4 2.4 2.1 4 2.1s3-.7 4-2.1M9 9.5h.01M15 9.5h.01' },
   cuota: { t: 'Deudas', u: 'Deuda', c: '#b39ddb', f: '#2e2838', d: 'M3 4h18v17H3zM3 9h18M8 2v4M16 2v4M9 15l2 2 4-4' },
   prestamo: { t: 'Préstamos', u: 'Préstamo', c: '#7fb0e8', f: '#232c38', d: 'M12 3v12M7 10l5 5 5-5M4 21h16' },
   traslado: { t: 'Traslados', u: 'Traslado', c: '#b3b9c4', f: '#282b31', d: 'M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4' },
@@ -835,21 +837,22 @@ const CAT = {
   // Pago del correo que llegó sin categoría (decidido por Juan el 24-nov-2026: no se adivina, se ve gris con "?").
   sincat: { t: 'Sin categoría', u: 'Sin categoría', c: '#9a979b', f: '#2b2a2d', d: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M9.2 9.2a2.9 2.9 0 0 1 5.6 1c0 1.9-2.8 2.6-2.8 2.6M12 16.8h.01' },
 };
-const ORDEN_CAT = ['hogar', 'moto', 'transporte', 'comida', 'salidas', 'servicios', 'suscr', 'inversion', 'salud', 'cuidado', 'cuota', 'prestamo', 'ingreso'];
+const ORDEN_CAT = ['hogar', 'moto', 'transporte', 'comida', 'salidas', 'servicios', 'suscr', 'inversion', 'salud', 'cuidado', 'gustos', 'cuota', 'prestamo', 'ingreso'];
 /**
  * Columna D de la hoja = Categoría (lista FIJA, decidida por Juan el 21-nov-2026). La Subcategoría (columna E) es libre.
  * Cada categoría con su ícono y color.
  */
-const TIPOS = ['Vehículo', 'Transporte', 'Servicios', 'Comida', 'Hogar', 'Salud', 'Cuidado personal', 'Salidas',
+const TIPOS = ['Vehículo', 'Transporte', 'Servicios', 'Comida', 'Hogar', 'Salud', 'Cuidado personal', 'Salidas', 'Gustos',
   'Suscripciones', 'Publicidad', 'Deuda', 'Préstamo', 'Ingreso', 'Reembolso'];
 const POSITIVOS = ['Ingreso', 'Préstamo', 'Reembolso', 'Saldo inicial'];
 const ICONO_DE = { 'Vehículo': 'moto', 'Transporte': 'transporte', 'Servicios': 'servicios', 'Comida': 'comida', 'Hogar': 'hogar',
-  'Salud': 'salud', 'Cuidado personal': 'cuidado', 'Salidas': 'salidas', 'Suscripciones': 'suscr', 'Publicidad': 'inversion',
+  'Salud': 'salud', 'Cuidado personal': 'cuidado', 'Salidas': 'salidas', 'Gustos': 'gustos', 'Suscripciones': 'suscr', 'Publicidad': 'inversion',
   'Deuda': 'cuota', 'Préstamo': 'prestamo', 'Ingreso': 'ingreso', 'Reembolso': 'reembolso', 'Saldo inicial': 'ingreso', 'Traslado': 'traslado' };
 // Subcategorías sugeridas cuando todavía no hay ninguna guardada (la app suma las que ya existen en la hoja).
 const SUBS_BASE = {
   'Ingreso': ['Fijo', 'Extra'], 'Préstamo': ['Familiar', 'Financiera', 'Banco', 'Amigo'], 'Deuda': ['Aplicación', 'Banco', 'Familiar'],
   'Suscripciones': ['IA', 'Música', 'Tienda'], 'Publicidad': ['Fijo variable'],
+  'Gustos': ['Gaming', 'Ropa', 'Accesorios', 'Regalos', 'Amoblado', 'Viajes'],
 };
 function subsDe(tipo) {
   const base = SUBS_BASE[tipo] || (POSITIVOS.includes(tipo) || !tipo ? [] : ['Gasto fijo', 'Gasto variable', 'Fijo variable']);
@@ -861,7 +864,8 @@ function subsDe(tipo) {
 /** Nombre para mostrar de la categoría (filas viejas con "Pauta" se ven como "Publicidad"). */
 function nombreTipo(t) { return t === 'Pauta' ? 'Publicidad' : t; }
 // Categorías que se pueden elegir para una compra agrupada (lista de 6 o más): [categoría, subcategoría].
-const CAT_COMPRA = [['Hogar', 'Gasto fijo'], ['Comida', 'Gasto variable'], ['Salud', 'Gasto variable'], ['Cuidado personal', 'Gasto variable'], ['Vehículo', 'Gasto fijo'], ['Hogar', 'Gasto variable']];
+const CAT_COMPRA = [['Hogar', 'Gasto fijo'], ['Comida', 'Gasto variable'], ['Salud', 'Gasto variable'], ['Cuidado personal', 'Gasto variable'], ['Vehículo', 'Gasto fijo'], ['Hogar', 'Gasto variable'],
+  ['Gustos', 'Gaming'], ['Gustos', 'Ropa'], ['Gustos', 'Accesorios'], ['Gustos', 'Regalos'], ['Gustos', 'Amoblado'], ['Gustos', 'Viajes']];
 
 function sinTildes(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
 /** De qué categoría (ícono y color) es un reporte, por su Tipo y Subcategoría. */
