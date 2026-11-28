@@ -564,6 +564,7 @@
           <button id="rSubLapiz" type="button" class="lapiz" aria-label="Escribir una subcategoría nueva"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
         </div></div>
     </div>
+    <div id="rHoraCaja" class="campo oculto"><label for="rHora">Hora del recordatorio (opcional · para programar hoy más tarde)</label><input id="rHora" type="time"></div>
     <span id="rMedioRot" class="suave oculto" style="font-size:12px;margin-bottom:-4px">Método probable (opcional)</span>
     <div id="rMedio" class="segmento" role="group" aria-label="Método">
       <button type="button" data-m="Nequi" aria-pressed="false">Nequi</button>
@@ -843,7 +844,10 @@ const ORDEN_CAT = ['hogar', 'moto', 'transporte', 'comida', 'salidas', 'servicio
  * Cada categoría con su ícono y color.
  */
 const TIPOS = ['Vehículo', 'Transporte', 'Servicios', 'Comida', 'Hogar', 'Salud', 'Cuidado personal', 'Salidas', 'Gustos',
-  'Suscripciones', 'Publicidad', 'Deuda', 'Préstamo', 'Ingreso', 'Reembolso'];
+  'Suscripciones', 'Publicidad', 'Deuda', 'Préstamo', 'Ingreso', 'Traslado'];
+// Juan, 27-nov-2026: sale Reembolso (no se usa) y entra Traslado (Nequi ↔ Efectivo, 2 filas como en el chat).
+// Pagarle a alguien por Nequi a otro banco NO es traslado: es un reporte normal (ej. Uber → Transporte).
+const SUBS_TRASLADO = ['Nequi a Efectivo', 'Efectivo a Nequi'];
 const POSITIVOS = ['Ingreso', 'Préstamo', 'Reembolso', 'Saldo inicial'];
 const ICONO_DE = { 'Vehículo': 'moto', 'Transporte': 'transporte', 'Servicios': 'servicios', 'Comida': 'comida', 'Hogar': 'hogar',
   'Salud': 'salud', 'Cuidado personal': 'cuidado', 'Salidas': 'salidas', 'Gustos': 'gustos', 'Suscripciones': 'suscr', 'Publicidad': 'inversion',
@@ -855,6 +859,7 @@ const SUBS_BASE = {
   'Gustos': ['Gaming', 'Ropa', 'Accesorios', 'Regalos', 'Amoblado', 'Viajes'],
 };
 function subsDe(tipo) {
+  if (tipo === 'Traslado') return SUBS_TRASLADO.slice(); // solo estas dos (el puente no acepta otras)
   const base = SUBS_BASE[tipo] || (POSITIVOS.includes(tipo) || !tipo ? [] : ['Gasto fijo', 'Gasto variable', 'Fijo variable']);
   const ya = (estado.datos && estado.datos.subs && estado.datos.subs[tipo]) || [];
   const out = [];
@@ -896,6 +901,8 @@ function etiquetaCat(r, k) { return CAT[k].u; }
 
 /* ---------------------------- utilidades ---------------------------- */
 function hoyTxt() { return new Intl.DateTimeFormat('en-CA', { timeZone: ZONA, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+/** "18:05" (hora de Colombia, 24 h). */
+function ahoraHHMM() { return new Intl.DateTimeFormat('en-GB', { timeZone: ZONA, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()); }
 function mover(s, dias, meses) { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1 + (meses || 0), d + (dias || 0))).toISOString().slice(0, 10); }
 function pesos(n, conSigno) {
   if (n == null || isNaN(n)) return '—';
@@ -916,7 +923,7 @@ function leerCreado(c) {
   const m = /^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec(c || '');
   return m ? { fecha: m[1], hora: m[2] ? hora12(m[2], m[3]) : '' } : { fecha: '', hora: '' };
 }
-const MARCA_PROG = /\s*(?:·\s*)?Programado el (\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}))? para el (\d{4}-\d{2}-\d{2})(?: \(antes ([^)]+)\))?/;
+const MARCA_PROG = /\s*(?:·\s*)?Programado el (\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}))? para el (\d{4}-\d{2}-\d{2})(?: a las (\d{2}:\d{2}))?(?: \(antes ([^)]+)\))?/;
 const MARCA_CONF = /\s*(?:·\s*)?Confirmado (?:desde la app|por correo de Nequi) (\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}))?/;
 /** "2026-11-21 10:45" → "21 nov 2026 · 10:45 a. m." (sin hora si no la tiene). */
 function fechaHora(s) {
@@ -928,9 +935,9 @@ function fechaHora(s) {
  * ("Programado el … para el …", "Confirmado desde la app …"). Se quitan para mostrar solo lo de Juan.
  */
 function leerNota(nota) {
-  let n = String(nota || ''), lugar = '', cant = 0, unit = 0, programadoEl = '', paraEl = '', antes = '', confirmadoEl = '';
+  let n = String(nota || ''), lugar = '', cant = 0, unit = 0, programadoEl = '', paraEl = '', horaPara = '', antes = '', confirmadoEl = '';
   const p = MARCA_PROG.exec(n);
-  if (p) { programadoEl = p[1] + (p[2] ? ' ' + p[2] : ''); paraEl = p[3]; antes = p[4] || ''; n = n.slice(0, p.index) + n.slice(p.index + p[0].length); }
+  if (p) { programadoEl = p[1] + (p[2] ? ' ' + p[2] : ''); paraEl = p[3]; horaPara = p[4] || ''; antes = p[5] || ''; n = n.slice(0, p.index) + n.slice(p.index + p[0].length); }
   const c = MARCA_CONF.exec(n);
   if (c) { confirmadoEl = c[1] + (c[2] ? ' ' + c[2] : ''); n = n.slice(0, c.index) + n.slice(c.index + c[0].length); }
   const l = /(?:^|\s·\s|^\s*·\s)Lugar: ([^·]+)$/.exec(n);
@@ -938,8 +945,10 @@ function leerNota(nota) {
   n = n.replace(/^\s*·\s*|\s*·\s*$/g, '').replace(/(\s*·\s*){2,}/g, ' · ').trim();
   const u = /^(\d+) × ([\d.]+)(?:\s·\s|$)/.exec(n);
   if (u) { cant = Number(u[1]); unit = Number(u[2].replace(/\./g, '')); n = n.slice(u[0].length); }
-  return { texto: n.trim(), lugar, cant, unit, programadoEl, paraEl, antes, confirmadoEl };
+  return { texto: n.trim(), lugar, cant, unit, programadoEl, paraEl, horaPara, antes, confirmadoEl };
 }
+/** "28 nov 2026 · 6:00 p. m." si el programado tiene hora del recordatorio. */
+function fechaPagarTxt(r, n) { const h = (n || leerNota(r.nota)).horaPara; return fechaLarga(r.fecha) + (h ? ' · ' + hora12(h.slice(0, 2), h.slice(3)) : ''); }
 function esProgramado(r) { return !!r && r.estado === 'Programado'; }
 function claseMonto(r) { if (r.tipo === 'Traslado') return 'traslado'; if (!r.monto) return 'cero'; if (r.tipo === 'Préstamo' || r.tipo === 'Préstamo recibido') return 'prestamo'; return r.monto < 0 ? 'gasto' : 'ingreso'; }
 function registradoPor(o) {
@@ -1449,7 +1458,7 @@ function tarjeta(r, prog) {
   if (ab) {
     const np = leerNota(r.nota);
     const filas = prog
-      ? [['Fecha a pagar', fechaLarga(r.fecha)], ['Programado el', fechaHora(np.programadoEl || r.creado) || '—'], ['Categoría', tipoTxt(r)], ['Método probable', r.medio || 'Sin definir']]
+      ? [['Fecha a pagar', fechaPagarTxt(r, np)], ['Programado el', fechaHora(np.programadoEl || r.creado) || '—'], ['Categoría', tipoTxt(r)], ['Método probable', r.medio || 'Sin definir']]
       : np.programadoEl
         ? [['Pagado el', np.confirmadoEl.slice(0, 10) === r.fecha ? fechaHora(np.confirmadoEl) : fechaLarga(r.fecha)], ['Categoría', tipoTxt(r)], ['Método', r.medio || 'Sin registrar']]
         : [['Fecha del pago', fechaLarga(r.fecha)], ['Registrado', fechaLarga(leerCreado(r.creado).fecha) || '—'], ['Categoría', tipoTxt(r)], ['Método', r.medio || 'Sin registrar']];
@@ -2284,6 +2293,8 @@ function abrirRevision(o) {
   sel.append(el('option', { value: '', text: 'Sin categoría (Por revisar)' }));
   TIPOS.forEach(t => sel.append(el('option', { value: t, text: nombreTipo(t) })));
   $('rFecha').removeAttribute('max'); // una fecha futura se programa
+  // Hora vacía al abrir: así un programado de hoy se CONFIRMA; si Juan pone una hora más tarde, se reprograma.
+  $('rHora').value = '';
   if (o.editar) {
     rev.quiere = esProgramado(o.editar);
     const r = o.editar, n = leerNota(r.nota);
@@ -2298,6 +2309,7 @@ function abrirRevision(o) {
     if (o.borrador.idPedido) rev.idPedido = o.borrador.idPedido; // mismo pedido: si ya había entrado a la hoja, no se duplica
     $('rConcepto').value = b.concepto; $('rValor').value = b.valor; $('rFecha').value = b.fecha; sel.value = b.tipo; $('rSub').value = b.sub;
     ponerMedio(b.medio); $('rNota').value = b.nota; $('rTienda').value = b.tienda || ''; $('rInnecesario').checked = !!b.innecesario;
+    $('rHora').value = b.hora || '';
     rev.signo = b.signo || -1;
   } else {
     const p = rev.p, c = rev.c;
@@ -2355,8 +2367,10 @@ function valorFirmado() {
 /** ¿Esta pantalla programa (fecha futura) o registra (hoy o antes)? Lo decide la fecha, en vivo. */
 function modoProgramar() {
   const rev = estado.rev; if (!rev) return false;
-  const f = $('rFecha').value;
-  return f ? f > hoyTxt() : rev.quiere;
+  const f = $('rFecha').value, h = $('rHora').value;
+  if (!f) return rev.quiere;
+  // Hoy con una hora más tarde que ahora = programar con recordatorio (Juan, 28-nov-2026).
+  return f > hoyTxt() || (f === hoyTxt() && !!h && h > ahoraHHMM());
 }
 function actualizarRevision() {
   const rev = estado.rev; if (!rev) return;
@@ -2364,9 +2378,14 @@ function actualizarRevision() {
   const delCorreo = rev.editar && rev.editar.estado === 'Por revisar' && /correo|nequi/i.test(rev.editar.origen || '');
   $('rTitulo').textContent = reprog ? (prog ? 'Reprogramar pago' : 'Confirmar pago') : prog ? 'Programar pago' : delCorreo ? 'Completar pago del correo' : rev.editar ? 'Editar reporte' : 'Revisar reporte';
   $('rRegistrar').textContent = prog ? (reprog ? 'Guardar' : 'Programar') : reprog ? 'Confirmar' : rev.editar ? 'Guardar' : 'Registrar';
-  $('rMedioRot').classList.toggle('oculto', !prog);
-  if (prog) $('rMedio').classList.remove('falta');
   const tipo = $('rTipo').value, sub = $('rSub').value.trim();
+  // La hora solo tiene sentido para hoy o adelante (un traslado no se programa).
+  const fv = $('rFecha').value;
+  $('rHoraCaja').classList.toggle('oculto', tipo === 'Traslado' || !!(fv && fv < hoyTxt()));
+  // Traslado: el método lo dice la subcategoría (de Nequi a Efectivo o al revés); no se elige Nequi | Efectivo.
+  $('rMedioRot').classList.toggle('oculto', !prog || tipo === 'Traslado');
+  $('rMedio').classList.toggle('oculto', tipo === 'Traslado');
+  if (prog || tipo === 'Traslado') $('rMedio').classList.remove('falta');
   const fake = { tipo, sub, concepto: $('rConcepto').value, monto: valorFirmado() || -1 };
   const k = catDe(fake);
   $('rIcono').replaceChildren(icono(k, 48, 24, 13));
@@ -2438,7 +2457,8 @@ function recalcular() {
 }
 function datosRevision() {
   return { concepto: $('rConcepto').value, valor: $('rValor').value, fecha: $('rFecha').value, tipo: $('rTipo').value, sub: $('rSub').value,
-    medio: estado.medio, nota: $('rNota').value, tienda: $('rTienda').value, innecesario: $('rInnecesario').checked, signo: estado.rev.signo };
+    medio: estado.medio, nota: $('rNota').value, tienda: $('rTienda').value, innecesario: $('rInnecesario').checked, signo: estado.rev.signo,
+    hora: $('rHora').value };
 }
 function notaParaHoja(nota) {
   // "2 × 4.900 · algo" se guarda tal cual; el puente agrega "Lugar: …" si la hoja no tiene columna Tienda.
@@ -2446,6 +2466,7 @@ function notaParaHoja(nota) {
 }
 async function registrar() {
   const rev = estado.rev; if (!rev) return;
+  if ($('rTipo').value === 'Traslado') return registrarTraslado();
   if (modoProgramar()) return programar();
   $('regError').textContent = '';
   const monto = valorFirmado(), tipo = $('rTipo').value;
@@ -2475,6 +2496,36 @@ async function registrar() {
     toast(editar ? (r.accion === 'sin cambios' ? 'No había nada que cambiar.' : 'Guardado: ' + mov.concepto + ' ' + pesos(monto)) :
       (r.accion === 'confirmado' ? 'Confirmado ' : 'Guardado ') + r.id + ': ' + mov.concepto + ' ' + pesos(monto));
     if (mov.fecha < estado.periodo.desde || mov.fecha > estado.periodo.hasta) estado.periodo = periodoRapido('mes');
+    estado.prog = false;
+    await volverAlInicioYCargar();
+  } catch (e) { $('regError').textContent = e.message; }
+  finally { $('rRegistrar').disabled = false; }
+}
+/** Traslado elegido en la lista de categorías: las mismas 2 filas que hace el chat ("retiré 50 mil de Nequi"). */
+async function registrarTraslado() {
+  const rev = estado.rev; if (!rev) return;
+  $('regError').textContent = '';
+  const sub = $('rSub').value.trim(), fecha = $('rFecha').value;
+  const valor = parseInt($('rValor').value.replace(/\D/g, ''), 10) || 0;
+  const mov = { tipo: 'Traslado', sub, monto: -valor, fecha, medio: '' };
+  const errores = [];
+  if (rev.editar) errores.push('Un reporte ya guardado no se vuelve traslado: bórralo y crea el traslado nuevo.');
+  if (!SUBS_TRASLADO.includes(sub)) errores.push('Elige la subcategoría: Nequi a Efectivo o Efectivo a Nequi.');
+  if (!valor) errores.push('Falta el valor.');
+  if (!fecha) errores.push('Falta la fecha.'); else if (fecha > hoyTxt()) errores.push('Un traslado no se programa: pon la fecha de hoy o antes.');
+  if (!errores.length) { const f = faltaSaldoForm(mov, null); if (f) errores.push(f); }
+  if (errores.length) { $('regError').textContent = errores.join(' '); return; }
+  const concepto = $('rConcepto').value.trim() || (sub === 'Nequi a Efectivo' ? 'Retiro' : 'Depósito');
+  const que = 'Traslado ' + sub + ' ' + pesos(valor);
+  $('rRegistrar').disabled = true;
+  try {
+    if (!await esperarDeshacer('Guardando ' + que)) { toast('Deshecho: no se guardó nada.'); return; }
+    const r = await api('traslado', { monto: valor, fecha, sub, concepto, nota: notaParaHoja($('rNota').value), idPedido: rev.idPedido });
+    if (estado.chatTarjeta && await trasGuardarDesdeChat(r.id, que)) return;
+    estado.rev = null; borrarBorrador();
+    $('frase').value = '';
+    toast('Guardado ' + (r.ids ? r.ids.join(' y ') : r.id) + ': ' + que);
+    if (fecha < estado.periodo.desde || fecha > estado.periodo.hasta) estado.periodo = periodoRapido('mes');
     estado.prog = false;
     await volverAlInicioYCargar();
   } catch (e) { $('regError').textContent = e.message; }
@@ -2520,6 +2571,7 @@ function movDeRevision() {
   return {
     concepto: $('rConcepto').value.trim(), monto: valorFirmado(), fecha: $('rFecha').value, tipo: $('rTipo').value, sub: $('rSub').value.trim(),
     medio: estado.medio || '', nota: notaParaHoja($('rNota').value), tienda: $('rTienda').value.trim(), innecesario: $('rInnecesario').checked,
+    hora: $('rHora').value || '',
   };
 }
 /** decision: '' (pregunta si hay una fila parecida) · 'hoja' · 'nuevo' · 'otro' (crear uno nuevo aunque se parezca). */
@@ -2530,7 +2582,9 @@ async function programar(decision) {
   const errores = [];
   if (!mov.concepto) errores.push('Falta el concepto.');
   if (valorVacio()) errores.push('Falta el valor.');
-  if (!mov.fecha) errores.push('Elige la fecha a pagar.'); else if (mov.fecha <= hoyTxt()) errores.push('Para programar, la fecha debe ser de mañana en adelante.');
+  if (!mov.fecha) errores.push('Elige la fecha a pagar.');
+  else if (mov.fecha < hoyTxt() || (mov.fecha === hoyTxt() && !(mov.hora && mov.hora > ahoraHHMM())))
+    errores.push('Para programar hoy pon una hora más tarde que ahora; si no, la fecha debe ser de mañana en adelante.');
   if (mov.monto > 0 && (!mov.nota || /…/.test(mov.nota) || /^ingreso:?$/i.test(mov.nota))) errores.push('Completa la nota: de dónde viene la plata.');
   if (errores.length) { $('regError').textContent = errores.join(' '); return; }
   const reprog = esProgramado(rev.editar) ? rev.editar.id : '';
@@ -2550,6 +2604,7 @@ async function programar(decision) {
     const quedo = decision === 'hoja' ? usar.concepto + ' ' + pesos(usar.monto) : mov.concepto + ' ' + pesos(mov.monto);
     const cal = r.calendario || {};
     toast((reprog ? 'Reprogramado ' : 'Programado ') + r.id + ': ' + quedo + ' para el ' + fechaCorta(r.fecha) +
+      (r.hora ? ' a las ' + hora12(r.hora.slice(0, 2), r.hora.slice(3)) : '') +
       (cal.ok === false ? '. ' + cal.msg : cal.msg ? ' · recordatorio en Google Calendar' : ''), cal.ok === false);
     estado.prog = true; // al terminar se ve la lista de Programados
     estado.abiertos.add(r.id);
@@ -2930,7 +2985,7 @@ function abrirDetalles(r) {
   // (la fecha estimada ya no se muestra). La hora del pago solo se sabe si se confirmó ese mismo día.
   const yaPagadoProg = !prog && !!n.programadoEl;
   const filas = prog
-    ? [['Fecha a pagar', fechaLarga(r.fecha)], ['Programado el', fechaHora(n.programadoEl || r.creado) || '—']]
+    ? [['Fecha a pagar', fechaPagarTxt(r, n)], ['Programado el', fechaHora(n.programadoEl || r.creado) || '—']]
     : yaPagadoProg
       ? [['Programado el', fechaHora(n.programadoEl)],
          ['Pagado el', n.confirmadoEl.slice(0, 10) === r.fecha ? fechaHora(n.confirmadoEl) : fechaLarga(r.fecha)],
@@ -3694,6 +3749,7 @@ $('rTipo').addEventListener('change', () => {
   pintarSubs(false); actualizarRevision(); recalcular(); refrescarSaldoRev();
 });
 $('rSubSel').addEventListener('change', () => { $('rSub').value = $('rSubSel').value; actualizarRevision(); });
+$('rHora').addEventListener('input', () => { actualizarRevision(); recalcular(); });
 $('rSubLapiz').addEventListener('click', () => pintarSubs($('rSub').classList.contains('oculto')));
 ['rSub', 'rConcepto'].forEach(id => $(id).addEventListener('input', actualizarRevision));
 $('rValor').addEventListener('input', () => {
